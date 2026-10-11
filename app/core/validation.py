@@ -82,6 +82,8 @@ def _check_lanes(orders: pd.DataFrame, plants: pd.DataFrame, lanes: pd.DataFrame
 
 
 def _check_capacity(plants: pd.DataFrame) -> dict:
+    if plants.empty:
+        return _check("V3", "Capacity is positive", False, "no plant rows loaded, so no capacity")
     bad = plants.loc[~(plants["weekly_capacity"] > 0)]
     offenders = [f"{r.plant} {r.product}" for r in bad.itertuples()]
     if offenders:
@@ -118,14 +120,19 @@ def _check_carbon(plants: pd.DataFrame, lanes: pd.DataFrame) -> dict:
     ]
     if problems:
         detail = f"{len(problems)} values out of range: {_named(problems)}"
-    elif plants.empty:
-        detail = "no plant rows to check"
     else:
-        detail = (
-            f"grid {grid.min():.2f} to {grid.max():.2f} kg CO2e per kWh (allowed 0 to "
-            f"{CARBON_PER_KWH_MAX:g}); transport {freight.min():.2f} to {freight.max():.2f} "
-            "kg CO2e per unit"
+        grid_part = (
+            f"grid {grid.min():.2f} to {grid.max():.2f} kg CO2e per kWh "
+            f"(allowed 0 to {CARBON_PER_KWH_MAX:g})"
+            if not plants.empty
+            else "no plant rows"
         )
+        freight_part = (
+            f"transport {freight.min():.2f} to {freight.max():.2f} kg CO2e per unit"
+            if not lanes.empty
+            else "no transport rows"
+        )
+        detail = f"{grid_part}; {freight_part}"
     return _check("V5", "Carbon intensities are non-negative and plausible", not problems, detail)
 
 

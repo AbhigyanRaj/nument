@@ -64,6 +64,15 @@ def test_implausible_grid_carbon_fails_v5(tables):
     assert not _by_id(validate_dataset(broken, START))["V5"]["ok"]
 
 
+def test_empty_tables_do_not_crash_and_fail_v3(tables):
+    empty = {name: frame.iloc[0:0] for name, frame in tables.items()}
+    report = validate_dataset(empty, START)
+    checks = _by_id(report)
+    assert not report["ok"]
+    assert checks["V3"]["detail"] == "no plant rows loaded, so no capacity"
+    assert checks["V5"]["detail"] == "no plant rows; no transport rows"
+
+
 def test_v6_compares_with_the_card_or_reports_counts(tables, sample_dir):
     expected = _counts(sample_dir) | {"orders": 151}
     v6 = _by_id(validate_dataset(tables, START, expected))["V6"]
