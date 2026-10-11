@@ -6,6 +6,7 @@ Every number here is computed by code from solver output; the LLM only rephrases
 from __future__ import annotations
 
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 
 from app.core.costing import Pricing, cheapest_option_per_order
 from app.core.solver import coefficients, plan_context, solve_allocation
@@ -92,19 +93,29 @@ def tradeoff_table(
     c0 = _carbon_kg(ref)
     ref_cost, ref_unmet = ref["kpis"]["total_cost"], ref["kpis"]["unmet_orders"]
     rows = []
-    for cut in sorted({float(c) for c in cuts}):
-        plan = (
-            ref
-            if cut == 0
-            else solve_allocation(
-                tables,
-                settings,
-                cost_first,
-                scenario,
-                carbon_cap_kg=c0 * (1 - cut / 100.0),
-                time_limit_s=time_limit_s,
+    ordered = sorted({float(c) for c in cuts})
+
+    def capped(cut: float) -> dict:
+        return solve_allocation(
+            tables,
+            settings,
+            cost_first,
+            scenario,
+            carbon_cap_kg=c0 * (1 - cut / 100.0),
+            time_limit_s=time_limit_s,
+        )
+
+    # The capped solves are independent, and CP-SAT releases the GIL, so run them together.
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        solved = dict(
+            zip(
+                [c for c in ordered if c != 0],
+                pool.map(capped, [c for c in ordered if c != 0]),
+                strict=True,
             )
         )
+    for cut in ordered:
+        plan = ref if cut == 0 else solved[cut]
         k = plan["kpis"]
         extra = round(k["total_cost"] - ref_cost, 2)
         saved_t = (c0 - _carbon_kg(plan)) / 1000.0
