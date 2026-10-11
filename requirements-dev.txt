@@ -1,0 +1,8 @@
+# Development and CI tooling on top of the runtime set. Locked in requirements-dev.lock.
+-r requirements.txt
+pytest>=8
+pytest-socket>=0.7
+ruff>=0.6
+# Image generation script only (scripts/generate_images.py); never imported by the app.
+google-genai>=1.0
+pillow>=10
