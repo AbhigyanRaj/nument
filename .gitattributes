@@ -1,0 +1,7 @@
+# LF everywhere so generated data and hooks are byte-identical on every platform.
+* text=auto eol=lf
+*.csv text eol=lf
+*.png binary
+*.jpg binary
+*.webp binary
+*.woff2 binary

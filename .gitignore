@@ -1,0 +1,34 @@
+# Secrets stay local. Only the template is committed.
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# SQLite databases, including the WAL side files (-wal, -shm)
+data/*.db*
+*.sqlite
+*.sqlite3
+
+# Web
+web/node_modules/
+web/dist/
+web/test-results/
+web/playwright-report/
+web/blob-report/
+*.tsbuildinfo
+
+# Raw image generations; only the reviewed, compressed files under web/ are committed
+scripts/.image-drafts/
+
+# OS and editors
+.DS_Store
+.idea/
+.vscode/
