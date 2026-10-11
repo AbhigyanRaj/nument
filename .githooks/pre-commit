@@ -32,7 +32,7 @@ $staged
 EOF
 
 # 2. Secrets: a quick pattern check on added lines, then gitleaks as a second opinion.
-secret_re='ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{60,}|AIza[0-9A-Za-z_-]{35}|sk-(ant-|proj-)?[A-Za-z0-9_-]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|_API_KEY=[A-Za-z0-9_-]{16,}'
+secret_re='ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{60,}|AIza[0-9A-Za-z_-]{35}|AQ\.[A-Za-z0-9_-]{40,}|sk-(ant-|proj-)?[A-Za-z0-9_-]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|_API_KEY=[A-Za-z0-9_-]{16,}'
 if git diff --cached -U0 --diff-filter=ACMR | grep -E '^\+' | grep -vE '^\+\+\+ ' | grep -Eq "$secret_re"; then
   fail "staged changes look like they contain a secret"
 fi
