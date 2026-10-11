@@ -197,9 +197,9 @@ def make_transport(rng: random.Random) -> list[dict]:
     return rows
 
 
-def make_orders(rng: random.Random) -> list[dict]:
-    counts = {p: round(share * N_ORDERS) for p, share in PRODUCT_MIX.items()}
-    counts["P1"] += N_ORDERS - sum(counts.values())  # absorb rounding
+def make_orders(rng: random.Random, n_orders: int = N_ORDERS) -> list[dict]:
+    counts = {p: round(share * n_orders) for p, share in PRODUCT_MIX.items()}
+    counts["P1"] += n_orders - sum(counts.values())  # absorb rounding
     products = [p for p, n in counts.items() for _ in range(n)]
     rng.shuffle(products)
 
@@ -275,11 +275,11 @@ def _fmt(value) -> str:
     return str(value)
 
 
-def generate(out: Path, drop_out: Path) -> dict:
+def generate(out: Path, drop_out: Path, n_orders: int = N_ORDERS) -> dict:
     rng = random.Random(SEED)
     plants = make_plants(rng)
     transport = make_transport(rng)
-    orders = make_orders(rng)
+    orders = make_orders(rng, n_orders)
     plants = add_dirty_week(plants)
     load = scale_capacity(plants, orders)
 
@@ -397,9 +397,12 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--out", type=Path, default=ROOT / "data" / "sample")
     parser.add_argument("--drop-out", type=Path, default=ROOT / "data" / "drop")
+    parser.add_argument(
+        "--orders", type=int, default=N_ORDERS, help="number of orders (default 150)"
+    )
     args = parser.parse_args(argv)
 
-    summary = generate(args.out, args.drop_out)
+    summary = generate(args.out, args.drop_out, args.orders)
     counts = summary["counts"]
     print(
         f"wrote {counts['orders']} orders, {counts['plants']} plant rows, "
