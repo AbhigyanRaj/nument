@@ -39,12 +39,15 @@ export function useCountUp(target: number, duration = 1200) {
   const ref = useRef<HTMLElement | null>(null);
   const [value, setValue] = useState(() => (prefersReducedMotion() ? target : 0));
   useEffect(() => {
-    if (prefersReducedMotion()) {
+    if (prefersReducedMotion() || document.documentElement.classList.contains("capture")) {
       setValue(target);
       return;
     }
     const el = ref.current;
-    if (!el) return;
+    if (!el || !("IntersectionObserver" in window)) {
+      setValue(target);
+      return;
+    }
     let frame = 0;
     const io = new IntersectionObserver(
       ([entry]) => {

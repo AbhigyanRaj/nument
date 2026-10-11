@@ -42,22 +42,22 @@ export function AnswerBadge({ type }: { type: AnswerType }) {
   return <Badge tone={meta.tone}>{meta.label}</Badge>;
 }
 
+function normaliseNumber(token: string): string {
+  const plain = token.replace(/,/g, "").replace(/\.$/, "");
+  const n = Number(plain);
+  return Number.isFinite(n) ? String(n) : plain;
+}
+
 /** Summary text with every number-checked figure underlined; the tooltip names the fact. */
 export function CheckedSummary({ text, matches }: { text: string; matches?: NumberMatch[] }) {
-  const parts = useMemo(() => {
-    if (!matches?.length) return [text];
-    const tokens = [...matches].sort((a, b) => b.token.length - a.token.length);
-    const pattern = new RegExp(
-      `(${tokens.map((m) => m.token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`,
-      "g",
-    );
-    return text.split(pattern);
-  }, [text, matches]);
-  const byToken = new Map((matches ?? []).map((m) => [m.token, m.facts]));
+  // Split on whole number tokens the same way the backend's number check extracts them
+  // (thousands commas removed), so "1,368,270" is one figure, never pieces of one.
+  const parts = useMemo(() => text.split(/(\d[\d,]*(?:\.\d+)?)/g), [text]);
+  const byToken = new Map((matches ?? []).map((m) => [normaliseNumber(m.token), m.facts] as const));
   return (
     <p className="text-body leading-[1.65] whitespace-pre-line text-tx">
       {parts.map((part, i) => {
-        const facts = byToken.get(part);
+        const facts = i % 2 === 1 ? byToken.get(normaliseNumber(part)) : undefined;
         if (!facts) return <Fragment key={i}>{part}</Fragment>;
         return (
           <Tooltip
@@ -258,6 +258,7 @@ type Filter = "all" | "late" | "moved" | "unmet";
 export function AllocationTable({ data }: { data: AnalyzeResponse }) {
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
+  const [showAll, setShowAll] = useState(false);
   const rows = useMemo(() => {
     let out: AllocationRow[] = data.allocation;
     if (filter === "late") out = out.filter((r) => r.days_late > 0);
@@ -374,7 +375,7 @@ export function AllocationTable({ data }: { data: AnalyzeResponse }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-st-secondary">
-            {rows.slice(0, 200).map((r) => (
+            {rows.slice(0, showAll ? rows.length : 25).map((r) => (
               <tr key={r.order_id} className="transition-colors hover:bg-sf-secondary/60">
                 <td className={cn(td, "font-medium")}>{r.order_id}</td>
                 <td className={td}>{r.product ?? "—"}</td>
@@ -416,6 +417,11 @@ export function AllocationTable({ data }: { data: AnalyzeResponse }) {
           </tbody>
         </table>
       </TableShell>
+      {rows.length > 25 && (
+        <button className="btn btn--soft btn--sm self-center" onClick={() => setShowAll(!showAll)}>
+          <span>{showAll ? "Show fewer" : `Show all ${rows.length} orders`}</span>
+        </button>
+      )}
     </div>
   );
 }
