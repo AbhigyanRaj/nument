@@ -20,3 +20,5 @@ web/playwright-report
 web/blob-report
 scripts/.image-drafts
 **/.DS_Store
+.claude
+web
