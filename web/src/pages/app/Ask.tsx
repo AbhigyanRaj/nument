@@ -1,5 +1,13 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowUp, Check, FileText, SlidersHorizontal, TriangleAlert } from "lucide-react";
+import {
+  ArrowUp,
+  Check,
+  FileText,
+  MessageSquareQuote,
+  ShieldCheck,
+  SlidersHorizontal,
+  TriangleAlert,
+} from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router";
 import { toast } from "sonner";
@@ -240,6 +248,90 @@ function Section({
   );
 }
 
+const HEADLINE: Record<AnalyzeResponse["answer_type"], string> = {
+  allocation: "Your plan is ready",
+  scenario: "Your what-if plan is ready",
+  brief: "Your leadership brief is ready",
+  infeasible: "Not fully possible: here is the closest plan",
+  clarification_needed: "I need one more detail",
+  refused: "I can't do that",
+};
+
+const PLANT_COLOUR: Record<string, string> = {
+  A: "bg-indigo-700",
+  B: "bg-orange-700",
+  C: "bg-green-600",
+};
+
+function StackBar({
+  title,
+  parts,
+}: {
+  title: string;
+  parts: { label: string; value: number; colour: string }[];
+}) {
+  const total = parts.reduce((sum, p) => sum + p.value, 0) || 1;
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-caption font-medium text-tx">{title}</p>
+      <div className="flex h-3 overflow-hidden rounded-full bg-sf-tertiary">
+        {parts
+          .filter((p) => p.value > 0)
+          .map((p) => (
+            <span
+              key={p.label}
+              className={cn("h-full transition-[width] duration-700", p.colour)}
+              style={{ width: `${(p.value / total) * 100}%` }}
+              title={`${p.label}: ${p.value}`}
+            />
+          ))}
+      </div>
+      <div className="flex flex-wrap gap-x-5 gap-y-1">
+        {parts.map((p) => (
+          <span key={p.label} className="flex items-center gap-1.5 text-caption text-tx-secondary">
+            <span className={cn("size-2.5 rounded-full", p.colour)} />
+            {p.label} <span className="text-tx tabular">{p.value}</span>
+            <span className="text-tx-tertiary tabular">
+              ({Math.round((p.value / total) * 100)}%)
+            </span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** The plan at a glance: where the orders go and how they arrive. */
+function PlanSnapshot({ data }: { data: AnalyzeResponse }) {
+  const byPlant = new Map<string, number>();
+  for (const row of data.allocation) {
+    if (row.plant) byPlant.set(row.plant, (byPlant.get(row.plant) ?? 0) + 1);
+  }
+  const plants = [...byPlant.keys()].sort();
+  const late = data.allocation.filter((r) => r.days_late > 0).length;
+  const unmet = data.unmet_orders?.length ?? 0;
+  return (
+    <div className="grid gap-5 rounded-2xl border border-st-secondary p-5 sm:grid-cols-2">
+      <StackBar
+        title="Where the orders go"
+        parts={plants.map((p) => ({
+          label: `Plant ${p}`,
+          value: byPlant.get(p) ?? 0,
+          colour: PLANT_COLOUR[p] ?? "bg-grey-500",
+        }))}
+      />
+      <StackBar
+        title="How they arrive"
+        parts={[
+          { label: "On time", value: data.allocation.length - late, colour: "bg-green-600" },
+          { label: "Late", value: late, colour: "bg-orange-700" },
+          { label: "Unmet", value: unmet, colour: "bg-red-500" },
+        ]}
+      />
+    </div>
+  );
+}
+
 function Report({ data }: { data: AnalyzeResponse }) {
   const nc = data.meta?.number_check;
   const planned = data.allocation.length > 0;
@@ -248,13 +340,29 @@ function Report({ data }: { data: AnalyzeResponse }) {
       {/* Answer card in the events double bezel: the page's one featured item. */}
       <div className="animate-fade-up rounded-[28px] border border-st-secondary bg-sf p-2">
         <div className="grid gap-6 rounded-[20px] bg-white p-6 md:grid-cols-[1fr_260px] md:p-8">
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-5">
             <div className="flex flex-wrap items-center gap-3">
               <AnswerBadge type={data.answer_type} />
-              <span className="font-mono text-label text-tx-tertiary">{data.run_id}</span>
+              <h2 className="text-[22px] leading-tight font-medium tracking-[-0.015em] text-tx">
+                {HEADLINE[data.answer_type]}
+              </h2>
             </div>
-            {data.request && <p className="text-caption text-tx-tertiary">“{data.request}”</p>}
-            <CheckedSummary text={data.summary} matches={nc?.matches} />
+            {data.request && (
+              <p className="flex items-start gap-2 text-caption text-tx-tertiary">
+                <MessageSquareQuote className="mt-0.5 size-4 shrink-0" strokeWidth={1.5} />
+                <span>
+                  You asked: <span className="text-tx-secondary">{data.request}</span>
+                </span>
+              </p>
+            )}
+            <div className="rounded-2xl border border-st-secondary bg-sf p-5">
+              <p className="mb-2 flex items-center gap-1.5 text-label font-medium tracking-[0.08em] text-tx-tertiary uppercase">
+                <ShieldCheck className="size-3.5 text-green-700" strokeWidth={2} />
+                nument's answer · every number verified
+              </p>
+              <CheckedSummary text={data.summary} matches={nc?.matches} />
+            </div>
+            {planned && <PlanSnapshot data={data} />}
             {data.brief && (
               <Button asChild variant="app" size="sm" className="self-start">
                 <Link to={`/app/brief/${data.run_id}`}>
@@ -265,6 +373,7 @@ function Report({ data }: { data: AnalyzeResponse }) {
           </div>
           <dl className="grid grid-cols-2 gap-x-4 gap-y-3 self-start rounded-2xl bg-sf-secondary p-4 text-caption md:grid-cols-1">
             {[
+              ["Run", data.run_id],
               ["Solver", `${data.meta?.solver ?? "—"} · ${data.meta?.solver_status ?? "—"}`],
               ["Latency", `${((data.meta?.latency_ms ?? 0) / 1000).toFixed(1)} s`],
               ["LLM calls", `${data.meta?.llm_calls ?? 0} · ${data.meta?.tokens ?? 0} tokens`],

@@ -655,6 +655,7 @@ def build_response(state: dict, run_id: str, latency_ms: int) -> dict:
     nc = state.get("number_check") or {"checked": 0, "matched": 0, "matches": []}
     return {
         "run_id": run_id,
+        "request": state.get("request", ""),
         "answer_type": answer,
         "summary": state.get("summary", ""),
         "allocation": rows,
