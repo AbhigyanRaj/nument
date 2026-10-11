@@ -67,8 +67,24 @@ headroom, while the severe B event still leaves P5 short, as intended.
 
 ## Checks run
 
-Validation output (checks V1-V6) is added when the loader and validator land, and the generator's
-trap assertions when the cost model lands.
+`python scripts/load_data.py --dir data/sample` followed by `python scripts/validate_data.py`:
+
+```
+check  result  detail
+-----  ------  -------------------------------------------------------------------------------------------
+V1     PASS    all 150 orders have at least one plant that makes their product
+V2     PASS    all 36 plant-destination pairs have a transport row
+V3     PASS    all 15 rows positive, 580 to 2,670 units per week
+V4     PASS    all due dates are after the planning start 2026-10-12
+V5     PASS    grid 0.12 to 0.82 kg CO2e per kWh (allowed 0 to 2); transport 0.35 to 2.35 kg CO2e per unit
+V6     PASS    counts match the data card: orders 150, plants 15, transport_duties 36, capacity_events 0
+planning start 2026-10-12
+  duty_pct: read as percent (values above 1 found)
+  capacity_loss_pct: no rows yet
+6 of 6 checks passed
+```
+
+The generator's trap assertions are added when the cost model lands.
 
 ## Known limits
 
