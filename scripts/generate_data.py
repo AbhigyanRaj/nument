@@ -301,6 +301,98 @@ def generate(out: Path, drop_out: Path) -> dict:
     return {"counts": counts, "load": load, "demand": sum(o["qty"] for o in orders)}
 
 
+def _read_tables(out: Path) -> dict:
+    import pandas as pd
+
+    from app.db import to_date
+
+    tables = {
+        "orders": pd.read_csv(out / "orders.csv"),
+        "plants": pd.read_csv(out / "plants.csv", keep_default_na=False),
+        "transport_duties": pd.read_csv(out / "transport_duties.csv"),
+    }
+    tables["orders"]["due"] = pd.Series([to_date(v) for v in tables["orders"]["due"]], dtype=object)
+    plants = tables["plants"]
+    plants["week_start"] = pd.Series([to_date(v) for v in plants["week_start"]], dtype=object)
+    plants["energy_price_per_kwh"] = pd.to_numeric(plants["energy_price_per_kwh"], errors="coerce")
+    return tables
+
+
+def check_traps(out: Path) -> list[tuple[str, str]]:
+    """Assert the planted traps exist (spec 1.6), using the real cost model."""
+    try:
+        from app.config import Settings
+        from app.core.costing import build_options, cheapest_option_per_order
+    except ImportError:
+        print("trap checks skipped: app.core.costing is not available")
+        return []
+
+    tables = _read_tables(out)
+    settings = Settings(_env_file=None, planning_start=PLANNING_START)
+    options = build_options(tables, PLANNING_START, 5, settings)
+    cheapest = cheapest_option_per_order(options)
+    by_order: dict[str, list] = {}
+    for o in options:
+        by_order.setdefault(o.order_id, []).append(o)
+    orders = tables["orders"]
+
+    assert len(orders) >= 100, "need at least 100 orders"
+    assert orders["destination"].nunique() >= 8, "need at least 8 destinations"
+    assert tables["plants"]["plant"].nunique() == 3, "need 3 plants"
+
+    cheapest_late = sorted(
+        oid
+        for oid, best in cheapest.items()
+        if best.days_late > 0 and any(o.on_time for o in by_order[oid])
+    )
+    assert len(cheapest_late) >= 3, f"only {len(cheapest_late)} cheapest-but-late orders"
+
+    o77 = by_order["O-077"]
+    a0 = next(o for o in o77 if o.plant == "A" and o.week == 0)
+    c0 = next(o for o in o77 if o.plant == "C" and o.week == 0)
+    assert cheapest["O-077"].plant == "A", "A must be cheapest for O-077"
+    assert a0.days_late == 3, "A must be exactly 3 days late for O-077"
+    assert c0.on_time, "C must be on time for O-077"
+
+    probe = type("Probe", (), {})()
+    probe.order_id, probe.product, probe.qty = "probe", "P1", 1
+    probe.destination, probe.due = "USA", DUE_LAST
+    from app.core.costing import Pricing
+
+    pricing = Pricing(tables, PLANNING_START, settings)
+    usa = {p: pricing.option(probe, p, 0).cost for p in ("A", "B", "C")}
+    assert min(usa, key=usa.get) != "A", "A must not be the cheapest landed cost for P1 to USA"
+
+    makers = tables["plants"].groupby("product")["plant"].nunique()
+    single = sorted(makers[makers == 1].index)
+    assert single, "need a product made at exactly one plant"
+
+    found = [
+        (
+            "cheapest option late, on-time option exists",
+            f"{len(cheapest_late)} orders, e.g. {', '.join(cheapest_late[:5])}",
+        ),
+        (
+            "O-077",
+            f"A cheapest, arrives {a0.arrival} ({a0.days_late} days late); C arrives {c0.arrival}, on time",
+        ),
+        ("duty trap P1 to USA", ", ".join(f"{p} {c:.2f}/unit" for p, c in usa.items())),
+        (
+            "single-plant products",
+            ", ".join(
+                f"{p} only at {tables['plants'].loc[tables['plants']['product'] == p, 'plant'].iloc[0]}"
+                for p in single
+            ),
+        ),
+        ("B dirty week", f"carbon {B_DIRTY_CARBON_KG_PER_KWH} kg/kWh from {B_DIRTY_WEEK_START}"),
+    ]
+    width = max(len(name) for name, _ in found)
+    print("traps found:")
+    for name, detail in found:
+        print(f"  {name.ljust(width)}  {detail}")
+    return found
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--out", type=Path, default=ROOT / "data" / "sample")
@@ -315,6 +407,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     print(f"wrote {len(DROP_FILES)} capacity event files to {args.drop_out}")
     print(f"demand {summary['demand']} units = {summary['load']:.1%} of 4-week capacity")
+    check_traps(args.out)
     return 0
 
 
