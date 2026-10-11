@@ -1,0 +1,37 @@
+plant,destination,transport_cost_per_unit,transit_days,duty_pct,carbon_kg_per_unit
+A,Germany,4.00,14,4,2.35
+A,France,4.34,10,6,1.32
+A,UK,5.62,13,3,2.08
+A,USA,4.84,15,28,1.86
+A,India,1.83,4,0,0.57
+A,Japan,2.54,6,8,0.64
+A,Brazil,5.15,13,3,2.23
+A,UAE,1.87,3,0,0.38
+A,Singapore,1.64,3,0,0.35
+A,Australia,2.53,7,8,1.16
+A,Mexico,5.12,11,7,2.07
+A,South Africa,2.25,8,5,1.19
+B,Germany,1.64,3,0,0.37
+B,France,1.32,2,0,0.37
+B,UK,1.03,3,0,0.42
+B,USA,2.10,7,4,0.99
+B,India,2.59,8,4,0.76
+B,Japan,4.12,13,8,1.90
+B,Brazil,5.74,15,5,1.46
+B,UAE,3.50,8,3,1.05
+B,Singapore,5.65,11,8,1.39
+B,Australia,5.20,10,6,1.66
+B,Mexico,5.99,13,7,2.23
+B,South Africa,2.02,5,8,1.13
+C,Germany,2.20,5,0,0.78
+C,France,2.24,5,8,1.13
+C,UK,2.40,6,7,1.15
+C,USA,1.87,3,0,0.55
+C,India,4.77,12,4,1.65
+C,Japan,3.90,9,7,1.59
+C,Brazil,1.02,3,0,0.56
+C,UAE,5.58,13,4,1.27
+C,Singapore,5.70,10,3,2.08
+C,Australia,5.54,11,4,1.99
+C,Mexico,1.95,2,0,0.38
+C,South Africa,5.68,15,4,2.31
