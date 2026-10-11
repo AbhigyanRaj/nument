@@ -1,0 +1,190 @@
+@import "tailwindcss";
+/* The kit's tokens and element defaults go in the base layer, so Tailwind utilities still win
+   (unlayered, its resets such as `button { padding: 0 }` would override every utility). */
+@import "./styles/tokens.css" layer(base);
+@import "./styles/kit.css";
+
+/* The site is always light. Stray `dark:` classes only apply under an explicit .dark class. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Tailwind theme = kit tokens only. The default palette is removed so off-kit colours cannot
+   creep in; `static` keeps every variable emitted for raw CSS and the charts. */
+@theme static {
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  --color-tx: #1f1f1f;
+  --color-tx-secondary: #3d3d3d;
+  --color-tx-tertiary: #666666;
+  --color-tx-muted: #999999;
+  --color-tx-inverse: #faf8f5;
+  --color-tx-brand: #29211d;
+  --color-tx-accent: #c4733d;
+
+  --color-sf: #fcfcfc;
+  --color-sf-white: #ffffff;
+  --color-sf-secondary: #f5f5f5;
+  --color-sf-tertiary: #f0f0f0;
+  --color-sf-quaternary: #e6e6e6;
+  --color-st: #e6e6e6;
+  --color-st-secondary: #f0f0f0;
+
+  --color-ink: #2a2c33;
+  --color-ink-deep: #1e2033;
+  --color-ink-app: #141414;
+
+  --color-indigo-50: #fafcff;
+  --color-indigo-100: #e8effc;
+  --color-indigo-200: #d2dff9;
+  --color-indigo-300: #a7c0f1;
+  --color-indigo-400: #81a0e9;
+  --color-indigo-500: #6a88e2;
+  --color-indigo-600: #556adc;
+  --color-indigo-700: #4250d5;
+  --color-indigo-800: #3333cc;
+  --color-indigo-900: #212191;
+  --color-indigo-950: #11115b;
+  --color-orange-50: #fffbfa;
+  --color-orange-100: #feede6;
+  --color-orange-200: #fddcce;
+  --color-orange-300: #f9bb9e;
+  --color-orange-400: #f59970;
+  --color-orange-500: #f38858;
+  --color-orange-600: #ee7944;
+  --color-orange-700: #e96c2f;
+  --color-orange-800: #e6651b;
+  --color-orange-900: #a5460f;
+  --color-orange-950: #682906;
+  --color-green-50: #f2f8eb;
+  --color-green-100: #e3f1d8;
+  --color-green-200: #c8e4b0;
+  --color-green-300: #acd587;
+  --color-green-400: #90c85b;
+  --color-green-500: #83c040;
+  --color-green-600: #6ea335;
+  --color-green-700: #496d21;
+  --color-green-800: #385418;
+  --color-green-900: #263d0e;
+  --color-pink-50: #fceaf0;
+  --color-pink-100: #f9d5e1;
+  --color-pink-200: #efabc5;
+  --color-pink-300: #e380a8;
+  --color-pink-400: #d4508e;
+  --color-pink-500: #b12060;
+  --color-pink-600: #9d2055;
+  --color-pink-700: #871f4b;
+  --color-pink-800: #731e3f;
+  --color-red-50: #fde7e2;
+  --color-red-100: #f8d1c6;
+  --color-red-200: #eba18f;
+  --color-red-300: #db715c;
+  --color-red-400: #c43d2b;
+  --color-red-500: #b81514;
+  --color-red-600: #a21913;
+  --color-red-700: #781a11;
+  --color-red-800: #781a11;
+  --color-yellow-50: #fff8e6;
+  --color-yellow-100: #fff0cf;
+  --color-yellow-200: #ffe8b7;
+  --color-yellow-300: #ffcb79;
+  --color-yellow-400: #ffb94a;
+  --color-yellow-500: #feb12b;
+  --color-yellow-600: #df9c2a;
+  --color-yellow-700: #c08827;
+  --color-yellow-800: #a27224;
+  --color-yellow-900: #6b4c1c;
+  --color-grey-50: #f9f9f9;
+  --color-grey-100: #f5f5f5;
+  --color-grey-200: #f0f0f0;
+  --color-grey-300: #e6e6e6;
+  --color-grey-400: #cccccc;
+  --color-grey-500: #b3b3b3;
+  --color-grey-600: #999999;
+  --color-grey-700: #666666;
+  --color-grey-800: #525252;
+  --color-grey-900: #3d3d3d;
+
+  --font-display: "Newsreader Variable", "Newsreader", Georgia, serif;
+  --font-sans: "Figtree Variable", "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Figtree weights: 425 regular, 525 medium. Weight 700 is reserved for the wordmark. */
+  --font-weight-normal: 425;
+  --font-weight-medium: 525;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --radius-card: 16px;
+  --radius-card-lg: 32px;
+  --radius-pill-card: 26px;
+
+  --shadow-card: 0 0 40px 0 #0000000f;
+  --shadow-card-hover: 0 8px 40px -4px #0000001f;
+  --shadow-soft: 0 1px 2px #0000000a, 0 2px 8px #0000000a;
+  --shadow-btn-ink: inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+  --shadow-btn-soft: inset 0 2px 0 rgba(200, 200, 200, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+  --shadow-tab-active: inset 0 0 6px rgba(0, 0, 0, 0.08), 0 0 0 1px #e6e6e6;
+  --shadow-focus: 0 0 0 3px #a5bbfc40;
+  --shadow-inset-glow-indigo: inset 0 0 10px #c7d2fecc;
+  --shadow-keycap: inset 0 -2px 1px 1px rgba(0, 0, 0, 0.04);
+
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-reveal: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-pill: cubic-bezier(0.34, 1.1, 0.64, 1);
+  --ease-accordion: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-fade-in: fade-in 0.4s var(--ease-standard) both;
+  --animate-fade-up: fade-up 0.7s var(--ease-reveal) both;
+  --animate-jump: jump 0.5s var(--ease-spring);
+  --animate-caret: caret-blink 1s steps(1) infinite;
+  --animate-typing: typing 1.2s ease-in-out infinite;
+  --animate-marquee: marquee 40s linear infinite;
+  --animate-float: float1 6s ease-in-out infinite;
+  --animate-float-slow: float2 7.5s ease-in-out infinite;
+  --animate-bloom: bloom 0.9s var(--ease-standard) both;
+  --animate-wiggle: wiggle 0.5s ease-in-out;
+}
+
+/* Display face: Newsreader stands in for Season Mix at its own weights (380 regular, 450
+   medium), the same per-family remap Sarvam uses. */
+.font-display {
+  --font-weight-normal: 380;
+  --font-weight-medium: 450;
+}
+
+@utility container-kit {
+  width: 88%;
+  margin-inline: auto;
+  @media (width >= 48rem) {
+    width: 83.333%;
+  }
+  @media (width >= 96rem) {
+    max-width: 1400px;
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@utility dot-grid {
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.08) 0.8px, transparent 0.8px);
+  background-size: 16px 16px;
+}
+
+@utility text-balance {
+  text-wrap: balance;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+body {
+  background: var(--color-sf);
+}
