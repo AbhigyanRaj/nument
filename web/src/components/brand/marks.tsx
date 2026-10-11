@@ -1,3 +1,5 @@
+// Brand marks: the nument wordmark and the small ornaments.
+
 import type { ReactNode, SVGProps } from "react";
 
 import { cn } from "@/lib/utils";

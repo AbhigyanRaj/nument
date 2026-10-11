@@ -1,3 +1,5 @@
+// Animation helpers: scroll reveals, header on scroll, reduced-motion support.
+
 import { useEffect, useRef, useState } from "react";
 
 import { prefersReducedMotion } from "@/lib/utils";

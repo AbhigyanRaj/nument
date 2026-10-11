@@ -1,3 +1,6 @@
+# Finds the best plan: which plant and week for each order, within capacity,
+# fewest late orders first, then lowest cost and carbon (OR-Tools CP-SAT).
+
 """Allocation solvers: exact CP-SAT, and a greedy heuristic used as baseline and fallback.
 
 Both minimise the same objective. Cost and carbon are divided by reference totals (the

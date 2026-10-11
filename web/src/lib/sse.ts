@@ -1,3 +1,5 @@
+// Reads the live step-by-step stream from the planner as it runs.
+
 // Minimal Server-Sent Events parser for fetch() streams (EventSource cannot POST).
 
 export interface SseMessage {

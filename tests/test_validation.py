@@ -1,3 +1,5 @@
+# Tests the six dataset checks pass on good data and fail on bad data.
+
 import json
 from datetime import date
 

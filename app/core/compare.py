@@ -1,3 +1,6 @@
+# Compares plans and explains them: what moved, what a carbon cut costs,
+# why an order went to its plant, and suggested next actions.
+
 """Plan comparison, the cost-carbon trade-off, order explanations and recommendations.
 
 Every number here is computed by code from solver output; the LLM only rephrases them.

@@ -1,3 +1,5 @@
+# Tests that the generated dataset is identical every time it is created.
+
 """The synthetic dataset must regenerate byte for byte, and match what is committed."""
 
 from pathlib import Path

@@ -1,3 +1,5 @@
+// Form controls and small UI pieces: inputs, selects, toggles, badges and more.
+
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import * as PopoverPrimitive from "@radix-ui/react-popover";

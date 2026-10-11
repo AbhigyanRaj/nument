@@ -1,3 +1,5 @@
+# Small helpers that print neat text tables for the command-line scripts.
+
 """Plain-text table printing shared by the command-line scripts."""
 
 from __future__ import annotations

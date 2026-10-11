@@ -1,3 +1,6 @@
+# Database access: connects to SQLite, creates the tables,
+# and reads the four data tables for the planning core.
+
 """Database access: a lazily created engine, sessions, and the table loader used by core.
 
 The engine is created on first use from the current settings, so tests and the evaluation

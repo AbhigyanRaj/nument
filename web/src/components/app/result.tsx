@@ -1,3 +1,6 @@
+// The pieces of an answer: badges, verified summary, KPI tiles, checks,
+// recommendations and the allocation, moved and explanation tables.
+
 import {
   BadgeCheck,
   CircleAlert,

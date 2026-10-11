@@ -1,3 +1,5 @@
+# Command-line tool: load CSV files into the database, then validate them.
+
 """Load CSV files into the database, then run the dataset checks.
 
 python scripts/load_data.py --dir data/sample [--mode replace|append]

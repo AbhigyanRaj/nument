@@ -1,3 +1,6 @@
+# The agent's six steps: understand, optimise, validate, compare, write, check numbers.
+# Runs one request end to end and saves the plan and its trace.
+
 """One agent, six fixed steps. The LLM is used in two places only: to understand the request
 and to write the words. Solve, validate, compare and the number check are plain code."""
 

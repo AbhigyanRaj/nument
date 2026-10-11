@@ -1,3 +1,5 @@
+// The page shown when a link does not exist.
+
 import { Link } from "react-router";
 
 import { Ornament } from "@/components/brand/marks";

@@ -1,3 +1,5 @@
+# Tests the load and validate command-line tools and the data card logic.
+
 import re
 import shutil
 

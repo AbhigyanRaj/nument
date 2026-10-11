@@ -1,3 +1,5 @@
+# Tests dates, weeks and weekly capacity after capacity losses.
+
 from datetime import date
 
 import pandas as pd

@@ -1,3 +1,5 @@
+# Tests the number check: real numbers pass, made-up numbers fail.
+
 from app.core.numbers import check_numbers, extract_numbers, template_brief, template_summary
 
 FACTS = {

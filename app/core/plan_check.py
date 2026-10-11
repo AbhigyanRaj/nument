@@ -1,3 +1,6 @@
+# Independently re-checks a plan from the raw data: capacity, eligibility,
+# delivery dates, completeness and every cost and carbon number.
+
 """Independent plan validator (the validate_plan tool).
 
 Everything is recomputed from the raw tables; nothing the solver reported is trusted.

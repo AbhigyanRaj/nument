@@ -1,3 +1,6 @@
+# Dates and weeks: when planning starts, how many weeks it covers,
+# and how much capacity each plant has each week after any losses.
+
 """Calendar rules: planning start, horizon, week arithmetic and percentage scales.
 
 Weeks are numbered from 0, starting on the planning-start Monday.

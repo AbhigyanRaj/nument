@@ -1,3 +1,5 @@
+// App entry point: loads styles and starts React with routing and data fetching.
+
 import "@fontsource-variable/figtree";
 import "@fontsource-variable/newsreader/opsz.css";
 import "@fontsource/dm-mono/400.css";

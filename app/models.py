@@ -1,3 +1,6 @@
+# The database tables: orders, plants, routes, capacity events,
+# plus logs of uploads, plans and agent runs.
+
 """The eight SQLModel tables: four input tables, the ingest log, and plan and agent records."""
 
 from datetime import UTC, date, datetime

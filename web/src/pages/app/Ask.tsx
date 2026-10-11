@@ -1,3 +1,6 @@
+// The main planner screen: ask a question, watch the steps live,
+// then see the plan, numbers, checks, charts and tables.
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowUp,

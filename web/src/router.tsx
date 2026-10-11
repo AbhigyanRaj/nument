@@ -1,3 +1,5 @@
+// The list of pages and their web addresses.
+
 import { lazy, Suspense, type ReactNode } from "react";
 import { createBrowserRouter, Navigate } from "react-router";
 

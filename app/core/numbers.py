@@ -1,3 +1,6 @@
+# Builds the facts the writer may use, and checks every number in its text.
+# A number that is not a computed fact fails the check.
+
 """Facts for the writer, and the number check that keeps the LLM honest.
 
 The writer only sees FACTS: a flat dict of pre-formatted strings built from tool outputs.

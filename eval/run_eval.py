@@ -1,3 +1,6 @@
+# Runs the 22 test questions against the planner and scores every answer.
+# Writes eval/report.md and eval/results.json.
+
 """Evaluation: 22 cases run in-process against a separate database.
 
     python eval/run_eval.py                  # mock LLM, CP-SAT

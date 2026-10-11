@@ -1,3 +1,5 @@
+# Tests the cost and carbon formulas, including a hand-worked example.
+
 from datetime import date
 
 import pandas as pd

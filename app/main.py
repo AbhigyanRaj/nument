@@ -1,3 +1,6 @@
+# The web API (FastAPI): plan, stream steps, upload data, health, traces and runs.
+# Also serves the simple planner page at /.
+
 """FastAPI app: the four contract endpoints plus streaming, runs, data and auth."""
 
 from __future__ import annotations

@@ -1,3 +1,6 @@
+# Shared test setup: every test gets its own throwaway database
+# and runs without a real LLM or network.
+
 """Shared fixtures. Every test runs against a throwaway database in mock-LLM mode and never
 reads the developer's .env, so results are the same on a laptop and in CI."""
 

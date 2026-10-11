@@ -1,3 +1,5 @@
+// The woven, cursor-reactive art panel on the login page (drawn live, no image).
+
 // PixelField: generated woven colour field that twists under the cursor (auth screen art panel).
 // Source: pages/login-pixelfield-brief.md §3.6. The ENGINE is verbatim; keep the constants and the
 // band-clear / settle logic exactly (see brief §3.4–3.5). Only the two palettes may change for nument

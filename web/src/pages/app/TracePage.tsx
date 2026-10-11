@@ -1,3 +1,5 @@
+// Shows every step of a past run: what each step did and how long it took.
+
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router";
 

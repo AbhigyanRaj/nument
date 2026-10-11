@@ -1,3 +1,5 @@
+# All settings in one place, read from environment variables or the .env file.
+
 """Application settings, read from the environment and an optional .env file."""
 
 import os

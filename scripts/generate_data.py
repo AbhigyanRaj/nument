@@ -1,3 +1,6 @@
+# Creates the made-up (synthetic) dataset: plants, routes and orders,
+# with tricky cases built in to test the planner. Same output every run.
+
 """Generate the synthetic planning dataset (oa-synth v1).
 
 Deterministic: a fixed seed and fixed formatting mean the same command always writes

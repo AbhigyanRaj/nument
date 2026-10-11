@@ -1,3 +1,5 @@
+// Log in or sign up, next to the woven art panel.
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, TriangleAlert } from "lucide-react";
 import { useRef, useState, type FormEvent } from "react";

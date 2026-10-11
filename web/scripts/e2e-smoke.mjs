@@ -1,3 +1,5 @@
+// Browser smoke test: logs in, runs a request and saves screenshots.
+
 // End-to-end smoke check against a running dev server and API: log in, run a request on
 // /app/ask, wait for the result, and save screenshots of each screen.
 //   node scripts/e2e-smoke.mjs [baseUrl]

@@ -1,3 +1,5 @@
+# Tests that settings load correctly from the environment and .env.example.
+
 from datetime import date
 from pathlib import Path
 

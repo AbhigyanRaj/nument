@@ -1,3 +1,5 @@
+// Dev server and build settings; /api calls are forwarded to the backend.
+
 /// <reference types="vitest/config" />
 import { fileURLToPath, URL } from "node:url";
 
@@ -20,6 +22,8 @@ export default defineConfig({
         target: API,
         rewrite: (path) => path.replace(/^\/api/, ""),
       },
+      // The Swagger page at /api/docs loads its schema from the absolute path /openapi.json.
+      "/openapi.json": { target: API },
     },
   },
   build: {

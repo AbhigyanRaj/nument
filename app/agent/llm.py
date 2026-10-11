@@ -1,3 +1,6 @@
+# Talks to the LLM (Gemini by default, swappable by env) or runs in mock mode.
+# Any failure returns nothing, so the agent falls back to rules or templates.
+
 """LLM access through one code path for every provider, plus mock mode.
 
 The LLM is used at most twice per request: to classify the request and to write the words.

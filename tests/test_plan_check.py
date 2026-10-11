@@ -1,3 +1,5 @@
+# Tests the independent plan checker catches broken plans.
+
 import copy
 from datetime import date
 

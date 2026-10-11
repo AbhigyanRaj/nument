@@ -1,3 +1,5 @@
+# Reads 'what if' settings, such as a plant losing capacity or skipping plants.
+
 """Scenario JSON: what-if changes applied on top of the loaded data.
 
 Accepted keys:

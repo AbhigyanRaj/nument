@@ -1,3 +1,5 @@
+// Small shared helpers, such as joining CSS class names.
+
 import { clsx, type ClassValue } from "clsx";
 import { extendTailwindMerge } from "tailwind-merge";
 

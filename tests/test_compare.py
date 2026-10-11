@@ -1,3 +1,5 @@
+# Tests plan comparison, the carbon trade-off table and order explanations.
+
 import pytest
 
 from app.config import Settings

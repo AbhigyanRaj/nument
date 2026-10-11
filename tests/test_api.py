@@ -1,3 +1,5 @@
+# Tests the web API end to end: planning, refusals, uploads, data and login.
+
 """Contract tests through FastAPI's TestClient in mock mode (spec 5.3)."""
 
 import pytest

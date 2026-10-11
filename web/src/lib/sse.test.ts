@@ -1,3 +1,5 @@
+// Tests the live-step stream reader.
+
 import { describe, expect, it } from "vitest";
 
 import { SseParser } from "./sse";

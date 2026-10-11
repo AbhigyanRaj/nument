@@ -1,3 +1,6 @@
+# Loads CSV files into the database, checking every row.
+# Bad rows are rejected with a clear reason; good rows are saved.
+
 """CSV ingestion: read a file, clean and check every row, then write the valid rows.
 
 Every load is recorded in the ingest log, including failed ones. A file whose rows are all

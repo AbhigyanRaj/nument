@@ -1,3 +1,5 @@
+// A developer-only page showing every UI component, used to check the design.
+
 import { Badge, Eyebrow, SectionHeading, StatRow } from "@/components/brand/marks";
 import { Button } from "@/components/ui/button";
 

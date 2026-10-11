@@ -1,3 +1,6 @@
+# Works out cost, carbon and arrival date for every order at every plant and week.
+# These 'options' are what the solver chooses from.
+
 """Landed cost, carbon and delivery for every way an order could be made.
 
 An option is one (order, plant, production week). Money is rounded to cents and carbon to

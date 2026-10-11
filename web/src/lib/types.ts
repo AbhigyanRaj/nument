@@ -1,3 +1,5 @@
+// The shapes of the data the API sends back, so the app stays in sync.
+
 // API contract types. Field names match the backend's AnalyzeResponse exactly.
 
 export type AnswerType =

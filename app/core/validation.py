@@ -1,3 +1,6 @@
+# Six quick checks on the loaded data, e.g. every order can be made somewhere
+# and every plant can ship to every destination.
+
 """The six dataset checks, run after every load.
 
 A failing V1, V2 or V4 never stops planning: the affected orders simply have fewer (or no)

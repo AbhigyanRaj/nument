@@ -1,3 +1,5 @@
+# Tests the database setup and reading tables back with proper dates.
+
 from datetime import date
 
 from sqlalchemy import text

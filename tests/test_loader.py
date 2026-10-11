@@ -1,3 +1,5 @@
+# Tests CSV uploads: good rows load, bad rows are rejected with reasons.
+
 import json
 
 import pandas as pd

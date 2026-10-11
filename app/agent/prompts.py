@@ -1,3 +1,6 @@
+# The instructions given to the LLM: how to read a request and how to write the answer.
+# The writer may only use numbers from the computed facts.
+
 """Prompts and the structured intent the classifier returns."""
 
 from __future__ import annotations

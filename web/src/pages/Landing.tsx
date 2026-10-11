@@ -1,3 +1,5 @@
+// The public home page: what nument does, how it works, and a way into the planner.
+
 import { Link } from "react-router";
 
 import heroGradient from "@/assets/hero-gradient.svg";

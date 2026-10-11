@@ -1,3 +1,5 @@
+// A clean, printable page for the leadership brief.
+
 import { useQuery } from "@tanstack/react-query";
 import { Copy, Printer } from "lucide-react";
 import { Link, useParams } from "react-router";

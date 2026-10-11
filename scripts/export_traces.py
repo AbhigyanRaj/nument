@@ -1,3 +1,5 @@
+# Runs three sample requests and saves their step-by-step traces to docs/traces.
+
 """Write three sample traces (allocation, scenario re-plan, infeasible) to docs/traces/.
 
 python scripts/export_traces.py            # mock LLM, throwaway database

@@ -1,3 +1,5 @@
+// Tests that numbers are formatted the same way as the backend's facts.
+
 import { describe, expect, it } from "vitest";
 
 import { csvCell, fmtMoney, fmtPct, fmtTonnes, toCsv } from "./format";

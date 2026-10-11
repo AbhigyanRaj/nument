@@ -1,3 +1,5 @@
+// Site chrome for the public pages: header with menus, CTA band and footer.
+
 import {
   BookOpen,
   ChevronDown,

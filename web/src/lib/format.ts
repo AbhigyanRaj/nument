@@ -1,3 +1,5 @@
+// Number formatting (money, tonnes, percent) that matches the backend exactly.
+
 // Number formatting that mirrors the backend's fact formatters (app/core/numbers.py), so KPI
 // tiles always show the same figures as the number-checked summary text.
 

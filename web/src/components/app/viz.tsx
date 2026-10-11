@@ -1,3 +1,5 @@
+// Charts for an answer: cost vs carbon, plant capacity used, and the weekly heatmap.
+
 import {
   CartesianGrid,
   ResponsiveContainer,

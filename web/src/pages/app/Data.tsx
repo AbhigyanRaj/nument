@@ -1,3 +1,5 @@
+// Upload new data files, see the data checks, and browse the loaded tables.
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CircleCheck, CircleX, UploadCloud } from "lucide-react";
 import { useState } from "react";

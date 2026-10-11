@@ -1,3 +1,6 @@
+# Login and sign-up: email + password, hashed, with a secure session cookie.
+# Also creates the optional demo account on startup.
+
 """Email + password accounts with server-side sessions (argon2id hashes, SHA-256 token hashes,
 httpOnly cookie). With REQUIRE_AUTH=false the contract endpoints stay open; login gates the UI."""
 

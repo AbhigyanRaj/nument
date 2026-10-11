@@ -1,3 +1,5 @@
+// Sample answer data used to show real-looking results without calling the API.
+
 // Demo fixtures in the exact AnalyzeResponse shape. Used by the landing page showcase and by
 // fixture mode (VITE_USE_FIXTURES=true) before the API is running. scripts/export_fixtures.py
 // replaces the values with real backend output.

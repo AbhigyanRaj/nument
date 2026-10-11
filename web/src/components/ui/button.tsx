@@ -1,3 +1,5 @@
+// The pill buttons used everywhere, with the hover glow and press effect.
+
 import { Slot, Slottable } from "@radix-ui/react-slot";
 import { ArrowRight } from "lucide-react";
 import { forwardRef, type ButtonHTMLAttributes, type PointerEvent } from "react";

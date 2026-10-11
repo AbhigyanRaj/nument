@@ -1,3 +1,6 @@
+# Helpers that look at the loaded data as a whole: which data card applies,
+# and the validation report for what is in the database.
+
 """Dataset-level helpers shared by the CLIs and the API: which data card applies to the data
 in the database, and the validation report for it."""
 

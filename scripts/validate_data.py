@@ -1,3 +1,5 @@
+# Command-line tool: run the six data checks and print PASS or FAIL.
+
 """Run the six dataset checks on the data in the database. Exit code 0 if all pass, else 1.
 
 python scripts/validate_data.py

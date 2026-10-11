@@ -1,3 +1,5 @@
+// Talks to the backend API: planning, streaming, data, runs, traces and login.
+
 // Typed client for the nument API. Everything goes through same-origin /api (Vite proxy in
 // dev, nginx in Docker), so the session cookie works without CORS.
 

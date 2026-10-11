@@ -1,3 +1,6 @@
+// The signed-in app frame: sidebar with New request and recent runs, top bar,
+// and the redirect to login when signed out.
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { House, Layers, ListChecks, LogOut, Menu, MessageSquareText, Plus, X } from "lucide-react";
 import { useState } from "react";

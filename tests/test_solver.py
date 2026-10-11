@@ -1,3 +1,5 @@
+# Tests the solver: valid plans, on-time choices, weights and capacity loss.
+
 from datetime import date
 
 import pandas as pd
