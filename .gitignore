@@ -32,3 +32,6 @@ scripts/.image-drafts/
 .DS_Store
 .idea/
 .vscode/
+
+# Agent worktrees
+.claude/

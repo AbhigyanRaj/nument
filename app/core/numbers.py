@@ -109,6 +109,7 @@ def build_facts(state: dict) -> dict[str, str]:
     for row in state.get("tradeoff") or []:
         cut = fmt_pct(row["carbon_cut_pct"]).removesuffix(".0")
         prefix = f"tradeoff_{cut}pct"
+        facts[f"{prefix}_cut_pct"] = cut
         facts[f"{prefix}_cost"] = fmt_money(row["cost"])
         facts[f"{prefix}_carbon_t"] = fmt_t(row["carbon_t"])
         facts[f"{prefix}_extra_cost"] = fmt_signed_money(row["extra_cost"])
