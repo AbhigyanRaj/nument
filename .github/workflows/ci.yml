@@ -52,3 +52,18 @@ jobs:
           .venv/bin/ruff check .
       - name: Tests
         run: .venv/bin/python -m pytest -q
+
+  docker:
+    name: Docker compose smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build and start
+        run: docker compose up -d --build --wait
+      - name: Health through nginx
+        run: |
+          curl -fsS http://localhost:8501/health
+          curl -fsS http://localhost:8000/health
+      - name: Stop
+        if: always()
+        run: docker compose down
