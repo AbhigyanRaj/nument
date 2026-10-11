@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { Layers, ListChecks, LogOut, Menu, MessageSquareText, X } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { House, Layers, ListChecks, LogOut, Menu, MessageSquareText, Plus, X } from "lucide-react";
 import { useState } from "react";
 import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate } from "react-router";
 
@@ -19,9 +19,22 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const navigate = useNavigate();
   return (
     <div className="flex h-full flex-col gap-8 px-4 py-5">
-      <Link to="/" className="px-2" onClick={onNavigate}>
+      {/* The logo keeps you inside the app; the public site is one click away below. */}
+      <Link to="/app/ask" className="px-2" onClick={onNavigate} aria-label="nument planner">
         <Wordmark />
       </Link>
+      <button
+        className="btn btn--ink w-full"
+        onClick={() => {
+          navigate("/app/ask", { state: { fresh: Date.now() } });
+          onNavigate?.();
+        }}
+      >
+        <span className="btn__glow" />
+        <span>
+          <Plus className="size-4" strokeWidth={2} /> New request
+        </span>
+      </button>
       <nav className="flex flex-col gap-0.5" aria-label="App">
         {NAV.map(({ to, label, icon: Icon }) => (
           <NavLink
@@ -75,6 +88,13 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           )}
         </div>
       </div>
+      <Link
+        to="/"
+        onClick={onNavigate}
+        className="flex h-[34px] items-center gap-2.5 rounded-lg px-2 text-caption text-tx-tertiary transition-colors duration-150 hover:bg-sf-secondary hover:text-tx"
+      >
+        <House className="size-4" strokeWidth={1.75} /> nument home
+      </Link>
     </div>
   );
 }
@@ -105,6 +125,7 @@ export default function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [drawer, setDrawer] = useState(false);
+  const queryClient = useQueryClient();
 
   if (me.isError)
     return (
@@ -155,6 +176,7 @@ export default function AppLayout() {
               className="btn btn--ghost"
               onClick={async () => {
                 await api.logout().catch(() => undefined);
+                queryClient.removeQueries({ queryKey: ["me"] });
                 navigate("/login");
               }}
             >
@@ -165,7 +187,10 @@ export default function AppLayout() {
           </div>
         </header>
         <main className="px-4 py-8 md:px-8 md:py-10">
-          <Outlet />
+          {/* "New request" remounts the page so the Ask workspace starts clean. */}
+          <div key={(location.state as { fresh?: number } | null)?.fresh ?? "page"}>
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

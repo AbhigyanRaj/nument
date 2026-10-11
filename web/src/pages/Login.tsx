@@ -1,7 +1,7 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, TriangleAlert } from "lucide-react";
 import { useRef, useState, type FormEvent } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router";
 
 import { Wordmark } from "@/components/brand/marks";
 import { PixelField } from "@/components/brand/PixelField";
@@ -80,11 +80,15 @@ export default function Login() {
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  // Already signed in: go straight to the planner instead of showing the form again.
+  const me = useQuery({ queryKey: ["me"], queryFn: api.me, retry: false });
   const copy = COPY[mode];
   const valid =
     email.includes("@") &&
     password.length >= (mode === "signup" ? 10 : 1) &&
     (mode === "login" || terms);
+
+  if (me.isSuccess) return <Navigate to={params.get("next") || "/app/ask"} replace />;
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();

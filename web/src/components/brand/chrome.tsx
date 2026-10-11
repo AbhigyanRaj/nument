@@ -10,12 +10,14 @@ import {
   ScrollText,
   X,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router";
 
 import { Ornament, StarGlyph, Wordmark } from "@/components/brand/marks";
 import { Button } from "@/components/ui/button";
 import { useScrolled } from "@/hooks/motion";
+import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 export const REPO_URL = "https://github.com/AbhigyanRaj/nument";
@@ -136,6 +138,9 @@ export function SiteHeader() {
   }, []);
 
   const menu = MENUS.find((m) => m.label === open);
+  // Signed-in visitors go straight back to their workspace instead of being offered "Log In".
+  const me = useQuery({ queryKey: ["me"], queryFn: api.me, retry: false, staleTime: 60_000 });
+  const signedIn = me.isSuccess;
 
   return (
     <header
@@ -176,16 +181,29 @@ export function SiteHeader() {
           </a>
         </nav>
         <div className="site-header__actions">
-          <Button asChild variant="ink" size="sm">
-            <Link to="/login">Log In</Link>
-          </Button>
-          <Button asChild variant="soft" size="sm">
-            <Link to="/app/ask">Open planner</Link>
-          </Button>
+          {signedIn ? (
+            <>
+              <span className="hidden text-caption text-tx-tertiary xl:inline">
+                {me.data?.email}
+              </span>
+              <Button asChild variant="ink" size="sm">
+                <Link to="/app/ask">Open planner</Link>
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button asChild variant="ink" size="sm">
+                <Link to="/login">Log In</Link>
+              </Button>
+              <Button asChild variant="soft" size="sm">
+                <Link to="/app/ask">Open planner</Link>
+              </Button>
+            </>
+          )}
         </div>
         <div className="site-header__mobile">
           <Button asChild variant="soft" size="sm">
-            <Link to="/login">Log In</Link>
+            <Link to={signedIn ? "/app/ask" : "/login"}>{signedIn ? "Planner" : "Log In"}</Link>
           </Button>
           <button className="burger" aria-label="Open menu" onClick={() => setDrawer(true)}>
             <Menu className="size-6" strokeWidth={1.5} />
@@ -259,7 +277,7 @@ export function SiteHeader() {
             </a>
             <div className="drawer__actions">
               <Button asChild variant="ink">
-                <Link to="/login">Log In</Link>
+                <Link to={signedIn ? "/app/ask" : "/login"}>{signedIn ? "Planner" : "Log In"}</Link>
               </Button>
               <Button asChild variant="soft">
                 <Link to="/app/ask">Open planner</Link>
