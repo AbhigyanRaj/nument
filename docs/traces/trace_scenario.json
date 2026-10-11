@@ -1,0 +1,147 @@
+{
+  "run_id": "al-a2d3bd",
+  "request": "Plant B loses 30% capacity. Re-plan.",
+  "answer_type": "scenario",
+  "steps": [
+    {
+      "step": 1,
+      "agent": "router",
+      "tool": "classify_request",
+      "input": {
+        "request": "Plant B loses 30% capacity. Re-plan."
+      },
+      "output": {
+        "intent": "replan",
+        "weights": {
+          "cost": 0.7,
+          "carbon": 0.3,
+          "lateness": 1.0
+        }
+      },
+      "ms": 7
+    },
+    {
+      "step": 2,
+      "agent": "optimiser",
+      "tool": "solve_allocation",
+      "input": {
+        "intent": "replan",
+        "weights": {
+          "cost": 0.7,
+          "carbon": 0.3,
+          "lateness": 1.0
+        }
+      },
+      "output": {
+        "status": "FEASIBLE",
+        "total_cost": 1368645.64,
+        "total_carbon_t": 208.142,
+        "late_orders": 28,
+        "unmet_orders": 0
+      },
+      "ms": 9652
+    },
+    {
+      "step": 3,
+      "agent": "checker",
+      "tool": "validate_plan",
+      "input": {},
+      "output": {
+        "capacity_ok": true,
+        "eligibility_ok": true,
+        "delivery_ok": true,
+        "complete_ok": true,
+        "numbers_ok": true,
+        "answer_type": "scenario"
+      },
+      "ms": 79
+    },
+    {
+      "step": 4,
+      "agent": "scenario",
+      "tool": "compare_plans",
+      "input": {},
+      "output": {
+        "facts": 38,
+        "moved_count": 21,
+        "extra_cost": 375.67
+      },
+      "ms": 0
+    },
+    {
+      "step": 5,
+      "agent": "writer",
+      "tool": "write_summary",
+      "input": {},
+      "output": {
+        "attempt": 1,
+        "tokens": 0
+      },
+      "ms": 0,
+      "fallback": "template"
+    },
+    {
+      "step": 6,
+      "agent": "checker",
+      "tool": "check_numbers",
+      "input": {},
+      "output": {
+        "checked": 10,
+        "matched": 10,
+        "unmatched": []
+      },
+      "ms": 0
+    }
+  ],
+  "llm_calls": 0,
+  "tokens": 0,
+  "latency_ms": 9749,
+  "number_check": {
+    "checked": 10,
+    "matched": 10
+  },
+  "data_used": {
+    "rows": {
+      "orders": 150,
+      "plants": 15,
+      "transport_duties": 36,
+      "capacity_events": 0
+    },
+    "planning_start": "2026-10-12",
+    "capacity_events_active": [
+      {
+        "event_id": null,
+        "plant": "B",
+        "from_date": "2026-10-12",
+        "to_date": "2026-11-15",
+        "loss_pct": 30.0,
+        "source": "scenario"
+      }
+    ]
+  },
+  "summary": "The re-plan moves 21 orders and changes cost by +376 (0.0%) and carbon by -0.4 t; 86.0% of orders keep their plant. The plan covers 150 orders for a landed cost of 1,368,646 and 208.1 t CO2e, with 28 late and 0 unmet.",
+  "kpis": {
+    "total_cost": 1368645.64,
+    "total_carbon_t": 208.142,
+    "late_orders": 28,
+    "unmet_orders": 0,
+    "orders_total": 150,
+    "plant_share": {
+      "A": 0.487,
+      "B": 0.34,
+      "C": 0.173
+    },
+    "plant_utilisation": {
+      "A": 0.524,
+      "B": 0.781,
+      "C": 0.813
+    }
+  },
+  "validator": {
+    "capacity_ok": true,
+    "eligibility_ok": true,
+    "delivery_ok": true,
+    "complete_ok": true,
+    "numbers_ok": true
+  }
+}

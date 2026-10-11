@@ -1,0 +1,147 @@
+{
+  "run_id": "al-ad28cc",
+  "request": "Re-plan.",
+  "answer_type": "infeasible",
+  "steps": [
+    {
+      "step": 1,
+      "agent": "router",
+      "tool": "classify_request",
+      "input": {
+        "request": "Re-plan."
+      },
+      "output": {
+        "intent": "replan",
+        "weights": {
+          "cost": 0.7,
+          "carbon": 0.3,
+          "lateness": 1.0
+        }
+      },
+      "ms": 7
+    },
+    {
+      "step": 2,
+      "agent": "optimiser",
+      "tool": "solve_allocation",
+      "input": {
+        "intent": "replan",
+        "weights": {
+          "cost": 0.7,
+          "carbon": 0.3,
+          "lateness": 1.0
+        }
+      },
+      "output": {
+        "status": "OPTIMAL",
+        "total_cost": 1316324.1,
+        "total_carbon_t": 208.862,
+        "late_orders": 34,
+        "unmet_orders": 3
+      },
+      "ms": 10590
+    },
+    {
+      "step": 3,
+      "agent": "checker",
+      "tool": "validate_plan",
+      "input": {},
+      "output": {
+        "capacity_ok": true,
+        "eligibility_ok": true,
+        "delivery_ok": true,
+        "complete_ok": true,
+        "numbers_ok": true,
+        "answer_type": "infeasible"
+      },
+      "ms": 69
+    },
+    {
+      "step": 4,
+      "agent": "scenario",
+      "tool": "compare_plans",
+      "input": {},
+      "output": {
+        "facts": 39,
+        "moved_count": 30,
+        "extra_cost": -51945.87
+      },
+      "ms": 0
+    },
+    {
+      "step": 5,
+      "agent": "writer",
+      "tool": "write_summary",
+      "input": {},
+      "output": {
+        "attempt": 1,
+        "tokens": 0
+      },
+      "ms": 0,
+      "fallback": "template"
+    },
+    {
+      "step": 6,
+      "agent": "checker",
+      "tool": "check_numbers",
+      "input": {},
+      "output": {
+        "checked": 10,
+        "matched": 10,
+        "unmatched": []
+      },
+      "ms": 0
+    }
+  ],
+  "llm_calls": 0,
+  "tokens": 0,
+  "latency_ms": 10678,
+  "number_check": {
+    "checked": 10,
+    "matched": 10
+  },
+  "data_used": {
+    "rows": {
+      "orders": 150,
+      "plants": 15,
+      "transport_duties": 36,
+      "capacity_events": 1
+    },
+    "planning_start": "2026-10-12",
+    "capacity_events_active": [
+      {
+        "event_id": "E-002",
+        "plant": "B",
+        "from_date": "2026-10-19",
+        "to_date": "2026-11-08",
+        "loss_pct": 85.0,
+        "source": "data"
+      }
+    ]
+  },
+  "summary": "The re-plan moves 30 orders and changes cost by -51,946 (-3.8%) and carbon by +0.3 t; 80.0% of orders keep their plant. The plan covers 150 orders for a landed cost of 1,316,324 and 208.9 t CO2e, with 34 late and 3 unmet. Unmet orders: O-022, O-047, O-078.",
+  "kpis": {
+    "total_cost": 1316324.1,
+    "total_carbon_t": 208.862,
+    "late_orders": 34,
+    "unmet_orders": 3,
+    "orders_total": 150,
+    "plant_share": {
+      "A": 0.547,
+      "B": 0.28,
+      "C": 0.153
+    },
+    "plant_utilisation": {
+      "A": 0.6,
+      "B": 0.811,
+      "C": 0.776
+    }
+  },
+  "validator": {
+    "capacity_ok": true,
+    "eligibility_ok": true,
+    "delivery_ok": true,
+    "complete_ok": true,
+    "numbers_ok": true
+  }
+}

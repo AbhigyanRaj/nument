@@ -1,0 +1,136 @@
+{
+  "run_id": "al-c061c9",
+  "request": "Allocate this week's orders.",
+  "answer_type": "allocation",
+  "steps": [
+    {
+      "step": 1,
+      "agent": "router",
+      "tool": "classify_request",
+      "input": {
+        "request": "Allocate this week's orders."
+      },
+      "output": {
+        "intent": "allocate",
+        "weights": {
+          "cost": 0.7,
+          "carbon": 0.3,
+          "lateness": 1.0
+        }
+      },
+      "ms": 28
+    },
+    {
+      "step": 2,
+      "agent": "optimiser",
+      "tool": "solve_allocation",
+      "input": {
+        "intent": "allocate",
+        "weights": {
+          "cost": 0.7,
+          "carbon": 0.3,
+          "lateness": 1.0
+        }
+      },
+      "output": {
+        "status": "OPTIMAL",
+        "total_cost": 1368269.97,
+        "total_carbon_t": 208.516,
+        "late_orders": 20,
+        "unmet_orders": 0
+      },
+      "ms": 27310
+    },
+    {
+      "step": 3,
+      "agent": "checker",
+      "tool": "validate_plan",
+      "input": {},
+      "output": {
+        "capacity_ok": true,
+        "eligibility_ok": true,
+        "delivery_ok": true,
+        "complete_ok": true,
+        "numbers_ok": true,
+        "answer_type": "allocation"
+      },
+      "ms": 81
+    },
+    {
+      "step": 4,
+      "agent": "scenario",
+      "tool": "compare_plans",
+      "input": {},
+      "output": {
+        "facts": 65
+      },
+      "ms": 0
+    },
+    {
+      "step": 5,
+      "agent": "writer",
+      "tool": "write_summary",
+      "input": {},
+      "output": {
+        "attempt": 1,
+        "tokens": 0
+      },
+      "ms": 0,
+      "fallback": "template"
+    },
+    {
+      "step": 6,
+      "agent": "checker",
+      "tool": "check_numbers",
+      "input": {},
+      "output": {
+        "checked": 5,
+        "matched": 5,
+        "unmatched": []
+      },
+      "ms": 0
+    }
+  ],
+  "llm_calls": 0,
+  "tokens": 0,
+  "latency_ms": 27444,
+  "number_check": {
+    "checked": 5,
+    "matched": 5
+  },
+  "data_used": {
+    "rows": {
+      "orders": 150,
+      "plants": 15,
+      "transport_duties": 36,
+      "capacity_events": 0
+    },
+    "planning_start": "2026-10-12",
+    "capacity_events_active": []
+  },
+  "summary": "The plan covers 150 orders for a landed cost of 1,368,270 and 208.5 t CO2e, with 20 late and 0 unmet.",
+  "kpis": {
+    "total_cost": 1368269.97,
+    "total_carbon_t": 208.516,
+    "late_orders": 20,
+    "unmet_orders": 0,
+    "orders_total": 150,
+    "plant_share": {
+      "A": 0.46,
+      "B": 0.393,
+      "C": 0.147
+    },
+    "plant_utilisation": {
+      "A": 0.505,
+      "B": 0.605,
+      "C": 0.699
+    }
+  },
+  "validator": {
+    "capacity_ok": true,
+    "eligibility_ok": true,
+    "delivery_ok": true,
+    "complete_ok": true,
+    "numbers_ok": true
+  }
+}
