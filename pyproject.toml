@@ -15,6 +15,7 @@ known-first-party = ["app"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 # No network in tests: the suite must pass offline (acceptance check 12).
 addopts = "-ra --disable-socket --allow-unix-socket"
 markers = [
