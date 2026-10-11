@@ -84,7 +84,16 @@ planning start 2026-10-12
 6 of 6 checks passed
 ```
 
-The generator's trap assertions are added when the cost model lands.
+`python scripts/generate_data.py` asserts the planted traps with the real cost model and prints:
+
+```
+traps found:
+  cheapest option late, on-time option exists  22 orders, e.g. O-002, O-013, O-031, O-033, O-036
+  O-077                                        A cheapest, arrives 2026-10-30 (3 days late); C arrives 2026-10-21, on time
+  duty trap P1 to USA                          A 32.41/unit, B 27.78/unit, C 33.94/unit
+  single-plant products                        P4 only at A, P5 only at B
+  B dirty week                                 carbon 0.7 kg/kWh from 2026-10-26
+```
 
 ## Known limits
 
