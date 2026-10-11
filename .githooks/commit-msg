@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Keeps history readable and owned by people: Conventional Commits subjects of at most
+# 72 characters, and no AI attribution in the message or the author identity.
+set -euo pipefail
+
+msg_file="$1"
+
+fail() {
+  printf 'commit-msg: %s\n' "$*" >&2
+  exit 1
+}
+
+# git's own comment lines are not part of the message.
+message="$(grep -v '^#' "$msg_file" || true)"
+subject="$(printf '%s\n' "$message" | sed -n '1p')"
+
+type_re='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9._/-]+\))?!?: [^ ]'
+printf '%s' "$subject" | grep -Eq "$type_re" ||
+  fail "subject must follow Conventional Commits, e.g. 'feat(core): add landed-cost options'"
+[ "${#subject}" -le 72 ] || fail "subject is ${#subject} characters; keep it to 72 or fewer"
+
+if printf '%s\n' "$message" | grep -Eiq 'co-authored-by|generated with|anthropic|claude'; then
+  fail "attribution lines (Co-authored-by, 'Generated with', AI tool names) are not allowed"
+fi
+
+author="$(git var GIT_AUTHOR_IDENT)"
+if printf '%s' "$author" | grep -Eiq 'anthropic|claude|noreply@openai'; then
+  fail "commits must be authored by a person, not an AI tool: $author"
+fi

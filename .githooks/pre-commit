@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# Fast gate on every commit (aim: under ~20 s). Blocks files that must never reach the
+# public repo, scans staged lines for secrets, then runs the quick checks for whatever
+# is staged. The slow, thorough checks live in pre-push.
+set -euo pipefail
+
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+
+fail() {
+  printf 'pre-commit: %s\n' "$*" >&2
+  exit 1
+}
+
+staged="$(git diff --cached --name-only --diff-filter=ACMR)"
+[ -n "$staged" ] || exit 0
+
+# 1. Paths that stay out of the repo, and oversized files.
+while IFS= read -r path; do
+  case "$path" in
+    .env.example) ;;
+    .env | .env.* | */.env | */.env.*) fail "refusing to commit $path: secrets stay in the local .env" ;;
+    *.db | *.db-wal | *.db-shm | *.db-journal | *.sqlite | *.sqlite3) fail "refusing to commit database file $path" ;;
+    design-kit/* | */design-kit/*) fail "design-kit/ holds captured third-party pages and stays out of the repo" ;;
+    Implementation.md | */Implementation.md) fail "Implementation.md stays out of the repo" ;;
+  esac
+  if [ -f "$path" ] && [ "$(wc -c <"$path")" -gt 512000 ]; then
+    fail "$path is larger than 500 KB"
+  fi
+done <<EOF
+$staged
+EOF
+
+# 2. Secrets: a quick pattern check on added lines, then gitleaks as a second opinion.
+secret_re='ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{60,}|AIza[0-9A-Za-z_-]{35}|sk-(ant-|proj-)?[A-Za-z0-9_-]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|_API_KEY=[A-Za-z0-9_-]{16,}'
+if git diff --cached -U0 --diff-filter=ACMR | grep -E '^\+' | grep -vE '^\+\+\+ ' | grep -Eq "$secret_re"; then
+  fail "staged changes look like they contain a secret"
+fi
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks git --pre-commit --staged --redact --no-banner --log-level error . ||
+    fail "gitleaks flagged a possible secret"
+fi
+
+# 3. Python: formatting, lint, and the fast test subset.
+py_files="$(printf '%s\n' "$staged" | grep -E '\.py$' || true)"
+if [ -n "$py_files" ]; then
+  [ -x .venv/bin/ruff ] || fail "no .venv found; run: uv venv --python 3.11 && uv pip install -r requirements-dev.lock"
+  # shellcheck disable=SC2086
+  .venv/bin/ruff format --check $py_files || fail "run: .venv/bin/ruff format"
+  # shellcheck disable=SC2086
+  .venv/bin/ruff check $py_files
+  if [ -d tests ]; then
+    .venv/bin/python -m pytest -q -x -m "not slow" -p no:cacheprovider
+  fi
+fi
+
+# 4. Web: lint, formatting and types, only when web/ files are staged.
+if printf '%s\n' "$staged" | grep -qE '^web/' && [ -f web/package.json ]; then
+  (cd web && pnpm -s lint && pnpm -s format:check && pnpm -s typecheck)
+fi

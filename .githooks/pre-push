@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# Last gate before GitHub. Re-checks authorship of every outgoing commit, scans them for
+# secrets, and runs the full test suite, the data determinism check, the web build and
+# (when planning code changed) the mock evaluation.
+set -euo pipefail
+
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+
+fail() {
+  printf 'pre-push: %s\n' "$*" >&2
+  exit 1
+}
+
+zero=0000000000000000000000000000000000000000
+changed=""
+
+while read -r _local_ref local_sha _remote_ref remote_sha; do
+  [ "$local_sha" = "$zero" ] && continue # branch deletion: nothing to check
+  if [ "$remote_sha" = "$zero" ]; then
+    range="$local_sha --not --remotes=origin"
+  else
+    range="$remote_sha..$local_sha"
+  fi
+
+  # shellcheck disable=SC2086
+  for commit in $(git rev-list $range); do
+    people="$(git log -1 --format='%an <%ae> / %cn <%ce>' "$commit")"
+    if printf '%s' "$people" | grep -Eiq 'anthropic|claude|noreply@openai'; then
+      fail "commit $commit has an AI author or committer: $people"
+    fi
+    if git log -1 --format=%B "$commit" | grep -Eiq 'co-authored-by|generated with|anthropic|claude'; then
+      fail "commit $commit carries an attribution line"
+    fi
+  done
+
+  if command -v gitleaks >/dev/null 2>&1; then
+    gitleaks git --log-opts="$range" --redact --no-banner --log-level error . ||
+      fail "gitleaks flagged a possible secret in the outgoing commits"
+  fi
+
+  # shellcheck disable=SC2086
+  changed="$changed $(git log --name-only --format= $range | sort -u | tr '\n' ' ')"
+done
+
+[ -n "$changed" ] || exit 0
+
+if [ -d tests ]; then
+  .venv/bin/python -m pytest -q -p no:cacheprovider || fail "tests failed"
+fi
+
+# The synthetic data must regenerate byte for byte.
+if [ -f scripts/generate_data.py ]; then
+  tmp="$(mktemp -d)"
+  trap 'rm -rf "$tmp"' EXIT
+  .venv/bin/python scripts/generate_data.py --out "$tmp/sample" --drop-out "$tmp/drop" >/dev/null ||
+    fail "data generator failed"
+  diff -r data/sample "$tmp/sample" >/dev/null || fail "data/sample is stale: regenerate and commit it"
+  diff -r data/drop "$tmp/drop" >/dev/null || fail "data/drop is stale: regenerate and commit it"
+fi
+
+if [ -f web/package.json ] && printf '%s' "$changed" | grep -q 'web/'; then
+  (cd web && pnpm -s build >/dev/null) || fail "web build failed"
+fi
+
+if [ -f eval/run_eval.py ] && printf '%s' "$changed" | grep -Eq 'app/(core|agent)/'; then
+  tmp_eval="$(mktemp -d)"
+  .venv/bin/python eval/run_eval.py --mock --solver cpsat --out-dir "$tmp_eval" >/dev/null ||
+    fail "mock evaluation failed"
+  rm -rf "$tmp_eval"
+fi
