@@ -29,6 +29,37 @@ def isolated_settings(tmp_path_factory):
     _refresh()
 
 
+@pytest.fixture(scope="session")
+def sample_dir(tmp_path_factory):
+    """The synthetic dataset, freshly generated (same bytes as data/sample)."""
+    from scripts.generate_data import generate
+
+    root = tmp_path_factory.mktemp("data")
+    generate(root / "sample", root / "drop")
+    return root
+
+
+@pytest.fixture(scope="session")
+def sample_db(isolated_settings, sample_dir):
+    """The session database with the sample dataset loaded. Read-only by convention:
+    tests that write use `fresh_db` instead."""
+    from app.core.loader import ingest_csv
+
+    init_db()
+    for table in ("plants", "transport_duties", "orders", "capacity_events"):
+        path = sample_dir / "sample" / f"{table}.csv"
+        result = ingest_csv(table, path.read_bytes(), str(path))
+        assert result["status"] == "ok", result
+    return sample_dir
+
+
+@pytest.fixture(scope="session")
+def tables(sample_db):
+    from app.db import load_tables
+
+    return load_tables()
+
+
 @pytest.fixture
 def fresh_db(tmp_path, monkeypatch):
     """An empty database of its own, for tests that write."""
