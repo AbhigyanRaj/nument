@@ -11,7 +11,8 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlalchemy import text
 from sqlmodel import select
@@ -66,6 +67,12 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(title="Order Allocation API", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 app.include_router(auth.router)
+app.mount("/static", StaticFiles(directory=ROOT / "app" / "static"), name="static")
+
+
+@app.get("/", include_in_schema=False)
+def home():
+    return FileResponse(ROOT / "app" / "static" / "index.html")
 
 
 @app.middleware("http")

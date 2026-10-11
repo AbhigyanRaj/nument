@@ -1,0 +1,20 @@
+<!-- nument hero "sunrise" gradient. Recreated from the measured values of sarvam.ai's hero:
+     a blurred half-disc whose radial gradient goes orange core -> amber ring -> periwinkle -> near-white.
+     Place it absolutely at the top-centre of the hero, ~3244px wide, translated so only the
+     lower rim is visible (see components/hero.html). Do not stretch the aspect ratio. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="3244" height="1744" fill="none" viewBox="0 0 3244 1744">
+  <defs>
+    <radialGradient id="g" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0 -1500 1500 0 1622 122)">
+      <stop offset=".75" stop-color="#F9730C"/>
+      <stop offset=".78" stop-color="#FFB053"/>
+      <stop offset=".80" stop-color="#A5BBFC"/>
+      <stop offset="1" stop-color="#F4F7FF"/>
+    </radialGradient>
+    <filter id="b" x="0" y="0" width="3244" height="1744" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="61"/>
+    </filter>
+  </defs>
+  <g filter="url(#b)">
+    <path fill="url(#g)" d="M3122 122c0 397.8-158 779.4-439.3 1060.7C2401.4 1464 2019.8 1622 1622 1622s-779.4-158-1060.7-439.3C280 901.4 122 519.8 122 122H3122Z"/>
+  </g>
+</svg>

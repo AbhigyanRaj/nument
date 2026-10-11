@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>nument · Order allocation planner</title>
+<link rel="stylesheet" href="/static/kit/tokens.css">
+<link rel="stylesheet" href="/static/kit/components.css">
+<style>
+  .hero { min-height: auto; padding-bottom: 40px; }
+  .hero__content { padding-bottom: 0; }
+  .bezel { width: min(920px, 100%); margin: 40px auto 0; padding: 6px; border-radius: 28px;
+    background: linear-gradient(180deg, #a7c0f1 0%, #f2f8eb 100%); box-shadow: 0 0 0 3px rgba(0,0,0,.05); }
+  .console { background: var(--color-sf); border: 1px solid var(--color-st-secondary); border-radius: 22px; padding: 24px; text-align: left; }
+  .console textarea { width: 100%; border: 0; outline: none; resize: none; background: transparent; font: inherit;
+    font-size: 22px; line-height: 1.5; color: var(--color-tx); min-height: 72px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .chip { background: #fff; border: 1px solid var(--color-st); cursor: pointer; }
+  .chip:hover { background: var(--color-sf-secondary); }
+  .controls { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; gap: 12px; flex-wrap: wrap; }
+  .meta-line { font-size: 13px; color: var(--color-tx-tertiary); }
+  .steps { display: flex; flex-wrap: wrap; gap: 8px; margin: 28px 0 0; justify-content: center; }
+  .step { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px 8px 8px; border-radius: 999px;
+    border: 1px solid var(--color-st); background: #fff; font-size: 14px; color: var(--color-tx-tertiary); transition: all .3s var(--ease-standard); }
+  .step .dot { width: 24px; height: 24px; border-radius: 50%; background: var(--color-sf-tertiary); display: grid; place-items: center; font-size: 12px; }
+  .step.active { color: var(--color-tx); box-shadow: 0 8px 26px rgba(0,0,0,.1); animation: jump .5s cubic-bezier(.34,1.56,.64,1); }
+  .step.active .dot { background: var(--indigo-100); color: var(--indigo-800); }
+  .step.done { color: var(--color-tx); }
+  .step.done .dot { background: var(--green-50); color: var(--green-700); }
+  @keyframes jump { 0%{transform:translateY(0)} 40%{transform:translateY(-6px)} 100%{transform:translateY(0)} }
+  .report { width: 83.333%; max-width: 1200px; margin: 48px auto 0; display: flex; flex-direction: column; gap: 16px; }
+  @media (max-width: 767px) { .report { width: 88%; } }
+  .bezel2 { border-radius: 28px; border: 1px solid var(--color-st-secondary); background: var(--color-sf); padding: 8px; }
+  .answer { background: #fff; border-radius: 20px; padding: 32px; }
+  .answer p { font-size: 17px; line-height: 1.7; color: var(--color-tx-secondary); white-space: pre-wrap; margin-top: 14px; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  @media (max-width: 767px) { .kpis { grid-template-columns: 1fr 1fr; } }
+  .kpi { background: #fff; border: 1px solid var(--color-st-secondary); border-radius: 16px; padding: 24px; }
+  .kpi .v { font-size: 34px; font-weight: 525; letter-spacing: -0.5px; font-variant-numeric: tabular-nums; color: var(--color-tx); }
+  .kpi .l { font-size: 14px; color: var(--color-tx-tertiary); margin-top: 4px; }
+  .kpi .d { font-size: 13px; margin-top: 6px; color: var(--indigo-800); }
+  .card2 { background: #fff; border: 1px solid var(--color-st-secondary); border-radius: 16px; padding: 24px; }
+  .card2 h3 { font-size: 18px; font-weight: 525; margin-bottom: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th { text-align: left; font-size: 12px; font-weight: 525; text-transform: uppercase; letter-spacing: .08em; color: var(--color-tx-tertiary);
+    padding: 10px 12px; border-bottom: 1px solid var(--color-st-secondary); background: rgba(245,245,245,.4); }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--color-st-secondary); font-variant-numeric: tabular-nums; color: var(--color-tx); }
+  .scroll { overflow-x: auto; max-height: 420px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+  .bar { height: 10px; border-radius: 6px; background: var(--color-sf-tertiary); overflow: hidden; }
+  .bar > span { display: block; height: 100%; background: var(--indigo-800); border-radius: 6px; }
+  .late { color: var(--red-500); } .ok { color: var(--green-700); }
+  ul.plain { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; font-size: 15px; color: var(--color-tx-secondary); }
+  details summary { cursor: pointer; font-weight: 525; font-size: 16px; padding: 6px 0; }
+  .hidden { display: none !important; }
+  .badge { font-size: 13px; padding: 6px 12px; }
+  .badge--green { color: var(--green-700); } .badge--red { color: var(--red-500); }
+</style>
+</head>
+<body>
+<header class="site-header is-scrolled" id="hdr">
+  <div class="site-header__bg"></div>
+  <div class="container site-header__row">
+    <a href="/" class="site-header__brand"><span class="wordmark">nument</span></a>
+    <div class="site-header__actions" style="display:flex">
+      <span class="meta-line" id="health">checking…</span>
+      <a href="/docs" class="btn btn--soft btn--sm"><span>API docs</span></a>
+    </div>
+  </div>
+</header>
+
+<main class="page-sheet" style="gap:0">
+  <section class="hero">
+    <div class="hero__fade"></div>
+    <img class="hero__gradient" src="/static/kit/hero-gradient.svg" alt="" aria-hidden="true">
+    <div class="container hero__content">
+      <div class="hero__glow"></div>
+      <img class="hero__ornament" src="/static/kit/ornament.svg" alt="" aria-hidden="true" style="filter:invert(1) drop-shadow(0 0 6px rgba(106,136,226,.6))">
+      <div class="hero-badge"><div class="hero-badge__rule"></div><p class="hero-badge__text">Multi-plant order allocation</p><div class="hero-badge__rule"></div></div>
+      <h1 class="h-hero">Every order, the right plant.</h1>
+      <p class="lead">Cost, carbon and delivery dates, balanced by an exact solver.<br>Every number is computed, never invented.</p>
+
+      <div class="bezel">
+        <div class="console">
+          <textarea id="q" rows="2" placeholder="Ask about this week's orders…">Allocate this week's orders.</textarea>
+          <div class="row" id="chips"></div>
+          <div class="controls">
+            <span class="meta-line" id="counter">Default weights: cost 70%, carbon 30%, lateness 1</span>
+            <button class="btn btn--ink" id="run"><span class="btn__glow"></span><span>Run plan</span></button>
+          </div>
+        </div>
+      </div>
+      <div class="steps" id="steps"></div>
+    </div>
+  </section>
+
+  <section class="report hidden" id="report">
+    <div class="bezel2"><div class="answer">
+      <div class="row"><span class="badge" id="atype">allocation</span><span class="meta-line" id="runmeta"></span></div>
+      <p id="summary"></p>
+    </div></div>
+    <div class="kpis" id="kpis"></div>
+    <div class="row" id="checks"></div>
+    <div class="grid2">
+      <div class="card2" id="tradeoffCard"><h3>Carbon cut vs cost</h3><div class="scroll"><table id="tradeoff"></table></div></div>
+      <div class="card2"><h3>Plant utilisation</h3><div id="util"></div></div>
+    </div>
+    <div class="card2 hidden" id="explainCard"><h3>Why this plant</h3><div class="scroll"><table id="explain"></table></div><ul class="plain" id="reasons" style="margin-top:14px"></ul></div>
+    <div class="card2 hidden" id="movedCard"><h3>What moved</h3><div class="scroll"><table id="moved"></table></div></div>
+    <div class="card2" id="recsCard"><h3>Recommendations</h3><ul class="plain" id="recs"></ul></div>
+    <div class="card2"><h3>Allocation</h3><div class="scroll"><table id="alloc"></table></div></div>
+    <div class="card2"><details><summary>Assumptions and limitations</summary><ul class="plain" id="assump" style="margin-top:12px"></ul></details></div>
+    <div style="height:80px"></div>
+  </section>
+  <div class="page-sheet__end"></div>
+</main>
+
+<footer class="site-footer">
+  <div class="container"><p class="meta-line">© 2026 nument · synthetic data only · numbers from OR-Tools CP-SAT, words from Gemini, every figure checked.</p></div>
+  <div class="container" style="width:92%"><div class="footer-giant" aria-hidden="true">nument</div></div>
+</footer>
+
+<script>
+const EXAMPLES = ["Allocate this week's orders.","What is the cheapest plan that is on time?","Why was order 77 built in Plant C?","What does a 10% carbon cut cost?","Plant B loses 30% capacity. Re-plan.","Write the brief for the leadership team."];
+const STEPS = [["classify_request","Understand"],["solve_allocation","Optimise"],["validate_plan","Validate"],["compare_plans","Compare"],["write","Write"],["check_numbers","Check numbers"]];
+const $ = id => document.getElementById(id);
+const money = x => Math.round(x).toLocaleString("en-US");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+EXAMPLES.forEach(t => { const b = document.createElement("button"); b.className = "chip"; b.textContent = t;
+  b.onclick = () => { $("q").value = t; run(); }; $("chips").appendChild(b); });
+
+document.querySelectorAll(".btn").forEach(b => b.addEventListener("pointermove", e => {
+  const r = b.getBoundingClientRect(); b.style.setProperty("--gx", (e.clientX - r.left) + "px"); b.style.setProperty("--gy", (e.clientY - r.top) + "px"); }));
+
+fetch("/health").then(r => r.json()).then(h => $("health").textContent =
+  `API ${h.api} · data ${h.data_store} · LLM ${h.llm} (${h.model}) · ${h.rows.orders} orders`).catch(() => $("health").textContent = "API offline");
+
+function renderSteps(done, active, early) {
+  $("steps").innerHTML = STEPS.map(([key, label], i) => {
+    const d = done.some(s => s.tool.startsWith(key.split("_")[0]) || s.tool === key);
+    const cls = d ? "done" : (i === active ? "active" : "");
+    const ms = done.find(s => s.tool === key || s.tool.startsWith(key.split("_")[0]));
+    return `<span class="step ${cls}"><span class="dot">${d ? "✓" : i + 1}</span>${label}${ms ? ` · ${(ms.ms/1000).toFixed(1)}s` : ""}</span>`;
+  }).join("") + (early ? `<span class="step done"><span class="dot">✓</span>Stopped early</span>` : "");
+}
+
+async function run() {
+  const request = $("q").value.trim(); if (!request) return;
+  $("run").disabled = true; $("report").classList.add("hidden");
+  const done = []; renderSteps(done, 0);
+  const res = await fetch("/analyze/stream", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ request }) });
+  const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = "";
+  while (true) {
+    const { value, done: end } = await reader.read(); if (end) break;
+    buf += dec.decode(value, { stream: true });
+    let i; while ((i = buf.indexOf("\n\n")) >= 0) {
+      const chunk = buf.slice(0, i); buf = buf.slice(i + 2);
+      const ev = (chunk.match(/^event: (.*)$/m) || [])[1]; const data = (chunk.match(/^data: (.*)$/m) || [])[1];
+      if (!ev || !data) continue; const d = JSON.parse(data);
+      if (ev === "step") { done.push(d); renderSteps(done, Math.min(done.length, 5), d.tool === "finish_early"); }
+      if (ev === "result") render(d);
+    }
+  }
+  $("run").disabled = false;
+}
+
+function render(r) {
+  $("report").classList.remove("hidden");
+  const tone = { allocation: "green", scenario: "green", brief: "green", infeasible: "orange", clarification_needed: "indigo", refused: "red" }[r.answer_type] || "indigo";
+  $("atype").className = "badge badge--" + tone; $("atype").textContent = r.answer_type.replace("_", " ");
+  const m = r.meta; $("runmeta").textContent = `${r.run_id} · ${m.solver || "no solve"} ${m.solver_status || ""} · ${(m.latency_ms/1000).toFixed(1)}s · LLM calls ${m.llm_calls} · numbers checked ${m.number_check.matched}/${m.number_check.checked}`;
+  $("summary").textContent = r.summary;
+  const k = r.kpis, c = r.comparison;
+  const delta = (v, unit) => c ? `<div class="d">${v > 0 ? "+" : ""}${unit === "t" ? v.toFixed(1) + " t" : money(v)} vs base</div>` : "";
+  $("kpis").innerHTML = r.allocation.length ? [
+    [money(k.total_cost), "Landed cost", c ? delta(c.extra_cost) : ""],
+    [k.total_carbon_t.toFixed(1) + " t", "CO2e", c ? delta(c.extra_carbon_t, "t") : ""],
+    [k.late_orders, "Late orders", ""], [k.unmet_orders, "Unmet orders", ""]].map(([v, l, d]) =>
+    `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div>${d}</div>`).join("") : "";
+  $("checks").innerHTML = r.allocation.length ? Object.entries(r.validator).map(([key, ok]) =>
+    `<span class="badge badge--${ok ? "green" : "red"}">${ok ? "PASS" : "FAIL"} · ${key.replace("_ok", "")}</span>`).join("") : "";
+  const t = r.tradeoff || []; $("tradeoffCard").classList.toggle("hidden", !t.length);
+  $("tradeoff").innerHTML = "<tr><th>Carbon cut</th><th>Cost</th><th>Extra</th><th>CO2e t</th><th>Late</th><th>Feasible</th></tr>" +
+    t.map(x => `<tr><td>${x.carbon_cut_pct}%</td><td>${money(x.cost)}</td><td>${x.extra_cost > 0 ? "+" : ""}${money(x.extra_cost)}</td><td>${x.carbon_t.toFixed(1)}</td><td>${x.late_orders}</td><td class="${x.feasible ? "ok" : "late"}">${x.feasible ? "yes" : "no"}</td></tr>`).join("");
+  $("util").innerHTML = Object.entries(k.plant_utilisation || {}).map(([p, u]) =>
+    `<div style="margin-bottom:14px"><div class="row" style="justify-content:space-between"><span>Plant ${p}</span><span class="meta-line">${(u*100).toFixed(1)}%</span></div><div class="bar"><span style="width:${Math.min(100, u*100)}%"></span></div></div>`).join("");
+  const ex = r.explanation; $("explainCard").classList.toggle("hidden", !(ex && ex.found));
+  if (ex && ex.found) {
+    $("explain").innerHTML = "<tr><th>Plant</th><th>Cost</th><th>Duty</th><th>CO2e kg</th><th>Arrival</th><th>Days late</th><th>Chosen</th></tr>" +
+      ex.rows.map(x => x.eligible ? `<tr><td>${x.plant}</td><td>${money(x.cost)}</td><td>${money(x.duty)}</td><td>${money(x.carbon_kg)}</td><td>${x.arrival}</td><td class="${x.days_late ? "late" : "ok"}">${x.days_late}</td><td>${x.chosen ? "✓" : ""}</td></tr>` : `<tr><td>${x.plant}</td><td colspan="6" class="meta-line">cannot make this order</td></tr>`).join("");
+    $("reasons").innerHTML = (ex.reason_codes || []).map(x => `<li>· ${esc(x.detail || x.code)}</li>`).join("");
+  }
+  $("movedCard").classList.toggle("hidden", !(c && c.moved.length));
+  if (c) $("moved").innerHTML = "<tr><th>Order</th><th>From</th><th>To</th><th>Cost change</th><th>Became late</th></tr>" +
+    c.moved.slice(0, 40).map(x => `<tr><td>${x.order_id}</td><td>${x.from_plant || "unmet"}</td><td>${x.to_plant || "unmet"}</td><td>${x.cost_change > 0 ? "+" : ""}${money(x.cost_change)}</td><td>${x.became_late ? "yes" : ""}</td></tr>`).join("");
+  $("recsCard").classList.toggle("hidden", !(r.recommendations || []).length);
+  $("recs").innerHTML = (r.recommendations || []).map(x => `<li><strong style="font-weight:525;color:var(--color-tx)">${esc(x.action)}</strong><br>${esc(x.rationale)} <span class="meta-line">· confidence ${x.confidence}${x.requires_approval ? " · needs approval" : ""}</span></li>`).join("");
+  $("alloc").innerHTML = "<tr><th>Order</th><th>Product</th><th>Qty</th><th>Plant</th><th>Week</th><th>Cost</th><th>CO2e kg</th><th>Arrival</th><th>Due</th><th>Status</th></tr>" +
+    r.allocation.map(x => `<tr><td>${x.order_id}</td><td>${x.product}</td><td>${x.qty}</td><td>${x.plant}${x.moved ? " ↺" : ""}</td><td>${x.week}</td><td>${money(x.cost)}</td><td>${money(x.carbon_kg)}</td><td>${x.arrival}</td><td>${x.due}</td><td class="${x.on_time ? "ok" : "late"}">${x.on_time ? "on time" : x.days_late + "d late"}</td></tr>`).join("") +
+    (r.unmet_orders || []).map(o => `<tr><td>${o}</td><td colspan="9" class="late">unmet: no capacity left</td></tr>`).join("");
+  $("assump").innerHTML = [...(r.assumptions || []), ...(r.limitations || [])].map(a => `<li>· ${esc(a)}</li>`).join("");
+  $("report").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+$("run").onclick = run;
+$("q").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); run(); } });
+</script>
+</body>
+</html>
