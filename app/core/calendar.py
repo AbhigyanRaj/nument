@@ -5,6 +5,7 @@ Weeks are numbered from 0, starting on the planning-start Monday.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Iterable
 from datetime import date, timedelta
 
@@ -49,6 +50,59 @@ def horizon_weeks(orders: pd.DataFrame, start: date) -> int:
         return MIN_WEEKS
     last_due_week = week_of(start, max(orders["due"]))
     return max(MIN_WEEKS, min(MAX_WEEKS, last_due_week + 2))
+
+
+def default_plant_rows(plants: pd.DataFrame) -> pd.DataFrame:
+    """One row per (plant, product): the undated default row, or the earliest dated row when
+    a (plant, product) only has dated rows."""
+    dated = plants["week_start"].map(lambda d: d is not None)
+    defaults = plants.loc[~dated]
+    present = set(zip(defaults["plant"], defaults["product"], strict=True))
+    fallback = (
+        plants.loc[dated]
+        .assign(_key=lambda f: list(zip(f["plant"], f["product"], strict=True)))
+        .loc[lambda f: ~f["_key"].isin(present)]
+        .sort_values("week_start")
+        .drop_duplicates(["plant", "product"])
+        .drop(columns="_key")
+    )
+    return pd.concat([defaults, fallback], ignore_index=True)
+
+
+def overlap_days(start_a: date, end_a: date, start_b: date, end_b: date) -> int:
+    """Days shared by two inclusive date ranges."""
+    return max(0, (min(end_a, end_b) - max(start_a, start_b)).days + 1)
+
+
+def effective_capacity(
+    plants: pd.DataFrame, events: list[dict], start: date, n_weeks: int
+) -> dict[tuple[str, str, int], int]:
+    """Capacity per (plant, product, week) after capacity events.
+
+    A week loses sum(event.loss * overlapping days / 7) over the plant's events, capped at
+    100%; capacity is weekly_capacity * (1 - loss), floored. `events` are dicts with
+    plant, from_date, to_date and `loss` as a fraction."""
+    capacity: dict[tuple[str, str, int], int] = {}
+    for row in default_plant_rows(plants).itertuples():
+        plant_events = [e for e in events if e["plant"] == row.plant]
+        for week in range(n_weeks):
+            first = week_start(start, week)
+            last = first + timedelta(days=6)
+            loss = sum(
+                e["loss"] * overlap_days(first, last, e["from_date"], e["to_date"]) / 7
+                for e in plant_events
+            )
+            loss = min(1.0, loss)
+            # The epsilon keeps 1500 * (1 - 0.3) = 1049.999... from flooring to 1049.
+            capacity[(row.plant, row.product, week)] = math.floor(
+                row.weekly_capacity * (1.0 - loss) + 1e-9
+            )
+    return capacity
+
+
+def base_capacity(plants: pd.DataFrame, start: date, n_weeks: int) -> dict:
+    """Capacity with no events, for utilisation and the plan checker."""
+    return effective_capacity(plants, [], start, n_weeks)
 
 
 def normalise_pct(x: float) -> float:

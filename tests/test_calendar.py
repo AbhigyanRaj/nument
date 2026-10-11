@@ -4,6 +4,8 @@ import pandas as pd
 
 from app.config import Settings
 from app.core.calendar import (
+    base_capacity,
+    effective_capacity,
     horizon_weeks,
     monday_on_or_before,
     normalise_pct,
@@ -62,3 +64,54 @@ def test_percent_scales():
     assert pct_scale([0.0, 0.04]) == "fraction"
     assert to_fraction(4, "percent") == 0.04
     assert to_fraction(0.04, "fraction") == 0.04
+
+
+def _plants(*rows) -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {"plant": p, "product": prod, "weekly_capacity": cap, "week_start": ws}
+            for p, prod, cap, ws in rows
+        ]
+    )
+
+
+def test_capacity_events_reduce_overlapping_weeks():
+    start = date(2026, 10, 12)
+    plants = _plants(("B", "P1", 1500, None), ("A", "P1", 2000, None))
+    event = {
+        "plant": "B",
+        "from_date": date(2026, 10, 19),
+        "to_date": date(2026, 11, 1),
+        "loss": 0.3,
+    }
+    cap = effective_capacity(plants, [event], start, 5)
+    assert cap[("B", "P1", 0)] == 1500
+    assert cap[("B", "P1", 1)] == 1050  # not 1049: floating point must not eat a unit
+    assert cap[("B", "P1", 2)] == 1050
+    assert cap[("B", "P1", 3)] == 1500
+    assert cap[("A", "P1", 1)] == 2000  # other plants untouched
+
+
+def test_partial_weeks_and_stacked_events():
+    start = date(2026, 10, 12)
+    plants = _plants(("B", "P1", 700, None))
+    events = [
+        {"plant": "B", "from_date": date(2026, 10, 15), "to_date": date(2026, 10, 18), "loss": 0.7},
+        {"plant": "B", "from_date": date(2026, 10, 12), "to_date": date(2026, 10, 18), "loss": 0.9},
+    ]
+    cap = effective_capacity(plants, events, start, 2)
+    assert cap[("B", "P1", 0)] == 0  # 0.4 + 0.9 is capped at a full loss
+    assert cap[("B", "P1", 1)] == 700
+
+
+def test_base_capacity_uses_default_rows_and_falls_back_to_earliest_dated():
+    start = date(2026, 10, 12)
+    plants = _plants(
+        ("A", "P1", 2000, None),
+        ("A", "P1", 9999, date(2026, 10, 26)),  # a carbon override row: capacity ignored
+        ("C", "P2", 500, date(2026, 11, 2)),
+        ("C", "P2", 400, date(2026, 10, 19)),  # only dated rows: earliest is the default
+    )
+    cap = base_capacity(plants, start, 3)
+    assert cap[("A", "P1", 2)] == 2000
+    assert cap[("C", "P2", 0)] == 400
