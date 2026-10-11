@@ -1,5 +1,6 @@
 """Application settings, read from the environment and an optional .env file."""
 
+import os
 from datetime import date
 from functools import lru_cache
 from typing import Literal
@@ -10,8 +11,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # env_ignore_empty: a blank line such as "PLANNING_START=" means "use the default",
-    # not "parse an empty string".
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_ignore_empty=True)
+    # not "parse an empty string". ENV_FILE lets tests opt out of the developer's .env.
+    model_config = SettingsConfigDict(
+        env_file=os.environ.get("ENV_FILE", ".env"), extra="ignore", env_ignore_empty=True
+    )
 
     # LLM
     llm_provider: Literal["gemini", "openai", "anthropic", "ollama"] = "gemini"
