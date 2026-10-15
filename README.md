@@ -8,6 +8,104 @@ writes is checked against the computed facts.
 *Mission: allocate every order to the best plant and week, show the cost of cutting carbon, and
 re-plan in seconds when capacity changes, without ever letting a model invent a number.*
 
+**Stack:** FastAPI · LangGraph · OR-Tools CP-SAT · SQLite · Gemini (switchable) · React + Tailwind
+
+## Contents
+
+[What it does](#what-it-does) · [Run it](#run-it) · [Configuration](#configuration) ·
+[The web app](#the-web-app) · [Architecture](#architecture) · [Loading data](#loading-data) ·
+[API](#the-six-capabilities) · [Rules and formulas](#rules-and-formulas) ·
+[Evaluation](#evaluation) · [Project layout](#project-layout) · [Troubleshooting](#troubleshooting)
+
+## What it does
+
+Ask in plain English; get a plan you can check.
+
+| You ask | You get |
+|---|---|
+| "Allocate this week's orders." | Plant and week for every order, cost, CO2e, late and unmet orders |
+| "What is the cheapest plan that is on time?" | The on-time plan, or `infeasible` with the closest plan and why |
+| "Why was order 77 built in Plant C?" | Every option for that order, with cost, carbon and arrival date |
+| "What does a 10% carbon cut cost?" | A cost-vs-carbon trade-off table from real solves |
+| "Plant B loses 30% capacity. Re-plan." | A new plan plus the list of orders that moved |
+| "Write the brief for the leadership team." | A short brief: situation, plan, trade-off, risks, decision |
+
+Every answer passes three checks before you see it:
+1. **Plan check:** capacity, eligibility, one plant per order, no dropped orders, dates.
+2. **Number check:** every number in the text must match a computed fact (up to two rewrites,
+   then a template).
+3. **Tests and evaluation:** 85 pytest tests and a 22-case evaluation (22/22 with CP-SAT).
+
+## Run it
+
+**Option 1: Docker (one command)**
+
+```bash
+cp .env.example .env          # optional: add GEMINI_API_KEY, or leave blank for mock mode
+docker compose up --build     # planner page http://localhost:8501, API http://localhost:8000/docs
+docker compose down           # stop
+```
+
+**Option 2: local, with the React app**
+
+Needs Python 3.11 with [uv](https://docs.astral.sh/uv/), Node 20+ and pnpm.
+
+```bash
+cp .env.example .env
+uv venv --python 3.11 && uv pip install -r requirements-dev.lock
+.venv/bin/uvicorn app.main:app --port 8000      # terminal 1: API (+ fallback page at /)
+
+cd web && pnpm install
+pnpm dev --host 127.0.0.1 --port 5173           # terminal 2: React app
+```
+
+Open http://127.0.0.1:5173. To log in, set a demo account in `.env` (password 10+ characters):
+
+```bash
+DEMO_EMAIL=demo@nument.dev
+DEMO_PASSWORD=choose-a-password
+```
+
+or click **Sign up** on the login page.
+
+| Port | What |
+|---|---|
+| 5173 | React app (dev server; `/api/*` is proxied to 8000) |
+| 8000 | FastAPI, interactive docs at `/docs`, fallback planner page at `/` |
+| 8501 | nginx in front of the API (Docker only) |
+
+The sample dataset (150 orders) loads on first start. No key? The app still runs in mock mode and
+`/health` reports `llm: mock`.
+
+## Configuration
+
+All settings live in [`.env.example`](.env.example), each with a one-line note. The ones you are
+most likely to change:
+
+| Setting | Default | What it does |
+|---|---|---|
+| `GEMINI_API_KEY` | blank | Enables the LLM; blank = mock mode |
+| `LLM_PROVIDER`, `LLM_MODEL` | gemini, gemini-3.8-flash | Switch model or provider (table below) |
+| `MOCK_LLM` | false | Force mock mode even with a key |
+| `SOLVER` | cpsat | `greedy` for the fast heuristic |
+| `DEMO_EMAIL`, `DEMO_PASSWORD` | blank | Demo login created on startup |
+| `REQUIRE_AUTH` | false | true = the API needs a session or `Bearer API_KEY` too |
+| `PLANNING_START` | blank | Fix week 0 to a Monday instead of deriving it |
+
+`.env` is git-ignored; never commit it. Keep comments on their own lines (see
+[Troubleshooting](#troubleshooting)).
+
+## The web app
+
+| Page | What is on it |
+|---|---|
+| `/` | Landing page |
+| `/login` | Log in or sign up |
+| `/app/ask` | Type a request (or pick an example), set weights or a scenario, watch the six agent steps live, then read the answer card, KPIs, charts and allocation table |
+| `/app/data` | Upload CSVs (replace or append), see rejected rows with reasons, run the six data checks, browse the tables |
+| `/app/trace/:id` | Every step of a run with timings, LLM calls, tokens and the number check |
+| `/app/brief/:id` | The leadership brief as a printable page |
+
 ## Architecture
 
 ```
@@ -21,28 +119,11 @@ request ─► classify ─► solve ─► validate ─► compare ─► write
 to write the words. Solve, validate, compare and the number check are plain code. Separate
 optimiser, scenario and brief agents were not added because those steps are deterministic; the
 trace still labels each step with a role (router, optimiser, checker, scenario, writer).
+A diagram is in [docs/architecture.excalidraw](docs/architecture.excalidraw).
 
 Stack: FastAPI + Pydantic v2, LangGraph, OR-Tools CP-SAT (greedy baseline and fallback),
 SQLModel + SQLite (WAL), Google Gemini via LangChain `init_chat_model` (switchable by env),
 React + Tailwind frontend styled from the nument design kit.
-
-## Quick start
-
-```bash
-cp .env.example .env          # add GEMINI_API_KEY, or leave blank for mock mode
-docker compose up --build     # UI http://localhost:8501, API http://localhost:8000 (/docs)
-```
-
-Without Docker:
-
-```bash
-uv venv --python 3.11 && uv pip install -r requirements-dev.lock
-.venv/bin/uvicorn app.main:app --port 8000      # API + fallback planner page at http://localhost:8000/
-cd web && pnpm install && pnpm dev              # React app at http://127.0.0.1:5173
-```
-
-The sample dataset loads on first start. Set `DEMO_EMAIL` and `DEMO_PASSWORD` (10+ characters) in
-`.env` to create a login on startup, or sign up in the UI.
 
 ## Switching the LLM
 
@@ -58,8 +139,12 @@ network; `/health` then reports `llm: mock` or `missing_key`.
 
 ## Loading data
 
+Two synthetic datasets ship with the repo (seed 42, see [docs/DATA_CARD.md](docs/DATA_CARD.md)):
+`data/sample` (150 orders, used by tests and the evaluation) and `data/large` (300 orders).
+
 ```bash
 python scripts/load_data.py --dir data/sample                       # replace all four tables
+python scripts/load_data.py --dir data/large                        # the 300-order dataset
 python scripts/load_data.py --file data/drop/capacity_events.csv --table capacity_events --mode append
 python scripts/validate_data.py                                     # six checks, exit 1 on failure
 curl -F file=@data/drop/capacity_events.csv -F table=capacity_events localhost:8000/ingest
@@ -165,6 +250,33 @@ within capacity (proven by the solver).
   stay feasible (see [docs/DATA_CARD.md](docs/DATA_CARD.md)).
 - CP-SAT adds two exact cuts (most on-time orders, most assignable orders), runs on one worker
   with a deterministic budget, and stops once a plan is proven within 0.5% of the bound.
+
+## Project layout
+
+```
+app/          FastAPI app: main.py (routes), config, db, models, auth
+  agent/      LangGraph graph, LLM wrapper, prompts
+  core/       pure Python: calendar, costing, solver, plan check, compare, numbers, loader
+  static/     fallback planner page served at /
+web/          React + Vite + Tailwind app
+data/         sample (150), large (300) and drop-in CSVs; the SQLite DB is created here
+scripts/      generate, load and validate data; export traces
+eval/         22 evaluation cases, runner and report
+tests/        pytest suite (network disabled)
+deploy/       nginx config for the Docker ui service
+docs/         data card, AI usage, contributions, traces, architecture diagram
+```
+
+## Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| Docker: `planning_start ... invalid character in year` | A `.env` line like `PLANNING_START=   # note`; Compose reads the note as the value. Put comments on their own line |
+| Docker on Linux: API exits, cannot write `data/` | The container runs as uid 1000: `chmod -R a+rwX data` |
+| Port already in use | `lsof -ti tcp:8000 \| xargs kill` (same for 5173, 8501) |
+| `/health` says `llm: missing_key` | Add the key for `LLM_PROVIDER` to `.env` and restart, or set `MOCK_LLM=true` |
+| Answers are slow | Each request runs real solves (about 3 to 10 s each); `SOLVER=greedy` is faster |
+| Back to the small dataset | `python scripts/load_data.py --dir data/sample` |
 
 ## Tests
 
