@@ -58,6 +58,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      # The api container runs as uid 1000; the runner checks out as another user.
+      - name: Make the data folder writable
+        run: chmod -R a+rwX data
       - name: Build and start
         run: docker compose up -d --build --wait
       - name: Health through nginx
